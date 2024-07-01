@@ -140,5 +140,98 @@ namespace Service
 
             return outDic;
         }
+
+        public async Task<List<OutDicModels>> GetDicJobFunctionBig()
+        {
+            var getList = await _goodjobOtherContext.Set<DicJobFunctionBig> ().OrderBy(o => o.OrderId).Select(o => new OutDicModels
+            {
+                Name = o.Pname,
+                Id = o.Id,
+            }).ToListAsync();
+
+            return getList;
+        }
+
+        public async Task<List<OutDicTown>> GetDicTown()
+        {
+            var getList = await (from a in _goodjobOtherContext.Set<DicProvince>()
+                                 join b in _goodjobOtherContext.Set<DicCity>() on a.Id equals b.ProvinceId into tableGroup1
+                                 from b in tableGroup1.DefaultIfEmpty()
+                                 join c in _goodjobOtherContext.Set<DicTown>() on b.Id equals c.CityId into tableGroup2
+                                 from c in tableGroup2.DefaultIfEmpty()
+                                 where (a.Pname == "广东")
+                                 select new
+                                 {
+                                     IsShow = b.IsShow,
+                                     ProvinceId = a.Id,
+                                     ProvinceName = a.Pname,
+                                     CityId = b.Id,
+                                     CityName = b.Pname,
+                                     TownId = c.Id == null ? 0 : c.Id,
+                                     TownName = c.Pname == null ? "" : c.Pname,
+                                 }).ToListAsync();
+            List<OutDicTown> outDicTown = new List<OutDicTown>();
+            //省
+            var bigList = getList.Select(o => new OutDicTown
+            {
+                Id = o.ProvinceId,
+                Name = o.ProvinceName,
+            }).GroupBy(o => new { o.Id, o.Name }).ToList();
+            foreach (var item in bigList)
+            {
+                //市
+                var smalList = getList.Where(o => o.ProvinceName == item.First().Name && o.ProvinceId == item.First().Id && o.IsShow==0 && o.CityId== 724).
+                    Select(o => new OutBigDicJobDto
+                    {
+                        Id = o.CityId,
+                        Name = o.CityName,
+                    }).GroupBy(o => new { o.Id, o.Name }).ToList();
+                foreach (var item2 in smalList)
+                {
+                    //区
+                    var smalList1 = getList.Where(o => o.IsShow == item2.First().Id && o.IsShow != 0).
+                        Select(o => new SmalJobDto
+                        {
+                            Id = o.CityId,
+                            Name = o.CityName,
+                        }).GroupBy(o => new { o.Id, o.Name }).ToList();
+                    foreach (var item3 in smalList1)
+                    {
+                        //镇
+                        var smalList3 = getList.Where(o => o.CityId == item3.First().Id && o.TownId != 0).
+                            Select(o => new OutDicModels
+                            {
+                                Id = o.TownId,
+                                Name = o.TownName,
+                            }).GroupBy(o => new { o.Id, o.Name }).ToList();
+                        foreach (var item4 in smalList3)
+                        {
+                            if(item3.First().JobList == null)
+                                item3.First().JobList = new List<OutDicModels>();
+                            item3.First().JobList.Add(item4.First());
+                        }
+                        if (item2.First().JobList == null)
+                            item2.First().JobList = new List<SmalJobDto>();
+                        item2.First().JobList.Add(item3.First());
+                    }
+                    if (item.First().JobList == null)
+                        item.First().JobList = new List<OutBigDicJobDto>();
+                    item.First().JobList.Add(item2.First());
+                }
+
+                outDicTown.Add(item.First());
+            }
+            return outDicTown;
+        }
+
+        public async Task<List<OutDicModels>> GetDicSalaryNew()
+        {
+            var getList = await _goodjobOtherContext.Set<DicSalaryNew>().OrderBy(o => o.OrderId).Select(o => new OutDicModels
+            {
+                Name = o.Name,
+                Id = o.Id,
+            }).ToListAsync();
+            return getList;
+        }
     }
 }

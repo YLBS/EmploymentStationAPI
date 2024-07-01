@@ -19,6 +19,7 @@ namespace Entity.Goodjob
         public virtual DbSet<ALinshi> ALinshis { get; set; } = null!;
         public virtual DbSet<APaiChu> APaiChus { get; set; } = null!;
         public virtual DbSet<AbackMemId> AbackMemIds { get; set; } = null!;
+        public virtual DbSet<ApplytRegisterForJob> ApplytRegisterForJobs { get; set; } = null!;
         public virtual DbSet<BaiDuResume> BaiDuResumes { get; set; } = null!;
         public virtual DbSet<CrmErmemployee> CrmErmemployees { get; set; } = null!;
         public virtual DbSet<EplCallRecord> EplCallRecords { get; set; } = null!;
@@ -61,6 +62,7 @@ namespace Entity.Goodjob
         public virtual DbSet<MemImConsumption> MemImConsumptions { get; set; } = null!;
         public virtual DbSet<MemImage> MemImages { get; set; } = null!;
         public virtual DbSet<MemInfo> MemInfos { get; set; } = null!;
+        public virtual DbSet<MemInfoJy> MemInfoJies { get; set; } = null!;
         public virtual DbSet<MemInterFace> MemInterFaces { get; set; } = null!;
         public virtual DbSet<MemInviteMsgTemplate> MemInviteMsgTemplates { get; set; } = null!;
         public virtual DbSet<MemInvoice> MemInvoices { get; set; } = null!;
@@ -162,6 +164,8 @@ namespace Entity.Goodjob
         public virtual DbSet<MngResumeStatistic> MngResumeStatistics { get; set; } = null!;
         public virtual DbSet<MngWeekly> MngWeeklies { get; set; } = null!;
         public virtual DbSet<MngWxPusMassage> MngWxPusMassages { get; set; } = null!;
+        public virtual DbSet<MngWxPusRecord> MngWxPusRecords { get; set; } = null!;
+        public virtual DbSet<MngWxPushLimit> MngWxPushLimits { get; set; } = null!;
         public virtual DbSet<MyActivateInvitation> MyActivateInvitations { get; set; } = null!;
         public virtual DbSet<MyAppRegisterLog> MyAppRegisterLogs { get; set; } = null!;
         public virtual DbSet<MyAuthenId> MyAuthenIds { get; set; } = null!;
@@ -271,6 +275,7 @@ namespace Entity.Goodjob
         public virtual DbSet<RecomMyuserId> RecomMyuserIds { get; set; } = null!;
         public virtual DbSet<RecommendQueue> RecommendQueues { get; set; } = null!;
         public virtual DbSet<RecommendedRecord> RecommendedRecords { get; set; } = null!;
+        public virtual DbSet<RecruitmentRegister> RecruitmentRegisters { get; set; } = null!;
         public virtual DbSet<RegisterSign> RegisterSigns { get; set; } = null!;
         public virtual DbSet<SelfServiceOrder> SelfServiceOrders { get; set; } = null!;
         public virtual DbSet<SeoUrl> SeoUrls { get; set; } = null!;
@@ -331,6 +336,25 @@ namespace Entity.Goodjob
                 entity.ToTable("aback_memID");
 
                 entity.Property(e => e.MemId).HasColumnName("MemID");
+            });
+
+            modelBuilder.Entity<ApplytRegisterForJob>(entity =>
+            {
+                entity.ToTable("ApplytRegisterForJob");
+
+                entity.Property(e => e.ContactPerson)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Esid).HasColumnName("ESId");
+
+                entity.Property(e => e.Phone)
+                    .HasMaxLength(11)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.PosName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<BaiDuResume>(entity =>
@@ -1416,6 +1440,148 @@ namespace Entity.Goodjob
                     .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.MailCode).HasComment("");
+
+                entity.Property(e => e.MemName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.OldContactTel)
+                    .HasMaxLength(45)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Phone)
+                    .HasMaxLength(11)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Qq)
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasColumnName("QQ")
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Qqflag).HasColumnName("QQFlag");
+
+                entity.Property(e => e.RegisterDate)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.UpdateDate)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ZipCode)
+                    .HasMaxLength(50)
+                    .HasDefaultValueSql("('')");
+            });
+
+            modelBuilder.Entity<MemInfoJy>(entity =>
+            {
+                entity.HasKey(e => e.MemId);
+
+                entity.ToTable("Mem_Info_JY");
+
+                entity.Property(e => e.MemId)
+                    .ValueGeneratedNever()
+                    .HasColumnName("MemID");
+
+                entity.Property(e => e.Address)
+                    .HasMaxLength(80)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.AddressC).HasColumnName("Address_C");
+
+                entity.Property(e => e.AddressD)
+                    .HasColumnName("Address_D")
+                    .HasComment("区");
+
+                entity.Property(e => e.AddressP).HasColumnName("Address_P");
+
+                entity.Property(e => e.AddressT)
+                    .HasColumnName("Address_T")
+                    .HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.BelongType).HasColumnName("belongType");
+
+                entity.Property(e => e.CompanyIntroduction)
+                    .HasMaxLength(8000)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.ContactDepartment)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.ContactFax)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.ContactFaxE)
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasColumnName("ContactFax_E")
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.ContactFaxZ)
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasColumnName("ContactFax_Z")
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.ContactPerson)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.ContactTel)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.ContactTelE)
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasColumnName("ContactTel_E")
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.ContactTelZ)
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasColumnName("ContactTel_Z")
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Email)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Esid).HasColumnName("ESId");
+
+                entity.Property(e => e.FoundDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.HomePage)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.LicenceNumber)
+                    .HasMaxLength(80)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.LogoFileName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.LogoUpdatedate)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.MemName)
                     .HasMaxLength(100)
@@ -4737,6 +4903,52 @@ namespace Entity.Goodjob
                 entity.Property(e => e.PusType).HasComment("0 为个人 1 为企业");
             });
 
+            modelBuilder.Entity<MngWxPusRecord>(entity =>
+            {
+                entity.ToTable("Mng_WxPusRecord");
+
+                entity.Property(e => e.EplName)
+                    .HasMaxLength(20)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Result)
+                    .HasMaxLength(500)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.SendDateTime)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.WxPushContext)
+                    .HasMaxLength(1000)
+                    .HasDefaultValueSql("('')");
+            });
+
+            modelBuilder.Entity<MngWxPushLimit>(entity =>
+            {
+                entity.ToTable("Mng_WxPushLimit");
+
+                entity.Property(e => e.CalingName)
+                    .HasMaxLength(100)
+                    .HasDefaultValueSql("(N'‘’')");
+
+                entity.Property(e => e.MemId)
+                    .HasMaxLength(100)
+                    .HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.MemKeyWored)
+                    .HasMaxLength(100)
+                    .HasDefaultValueSql("(N'‘’')");
+
+                entity.Property(e => e.PosKeyWored)
+                    .HasMaxLength(100)
+                    .HasDefaultValueSql("(N'‘’')");
+
+                entity.Property(e => e.RegionCid)
+                    .HasMaxLength(100)
+                    .HasColumnName("RegionCId");
+            });
+
             modelBuilder.Entity<MyActivateInvitation>(entity =>
             {
                 entity.ToTable("My_ActivateInvitation");
@@ -5622,9 +5834,7 @@ namespace Entity.Goodjob
 
                 entity.Property(e => e.LocationT).HasColumnName("Location_T");
 
-                entity.Property(e => e.MaritalStatus)
-                    .HasDefaultValueSql("((1))")
-                    .HasComment("婚姻状况\r\n0=未婚，1=已婚，2=离异，3=保密");
+                entity.Property(e => e.MaritalStatus).HasComment("婚姻状况\r\n0=未婚，1=已婚，2=离异，3=保密");
 
                 entity.Property(e => e.MobileNum)
                     .HasMaxLength(50)
@@ -7734,13 +7944,46 @@ namespace Entity.Goodjob
                 entity.Property(e => e.Type).HasComment("数据类型，1为企业，2为个人");
             });
 
+            modelBuilder.Entity<RecruitmentRegister>(entity =>
+            {
+                entity.ToTable("RecruitmentRegister");
+
+                entity.Property(e => e.Address).HasMaxLength(80);
+
+                entity.Property(e => e.ContactPerson)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Esid).HasColumnName("ESId");
+
+                entity.Property(e => e.MemName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Phone)
+                    .HasMaxLength(11)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.PosName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<RegisterSign>(entity =>
             {
                 entity.ToTable("RegisterSign");
 
                 entity.HasComment("存储登记失业标签");
 
-                entity.Property(e => e.MyUserId).HasColumnName("MyuserID");
+                entity.Property(e => e.BelongType).HasComment("1 大岗，2 南沙，4 黄阁");
+
+                entity.Property(e => e.CreateTime)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Esid)
+                    .HasColumnName("ESId")
+                    .HasComment("录入驿站ID");
 
                 entity.Property(e => e.Type).HasComment("1 失业人员 2 退伍军人");
             });

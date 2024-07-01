@@ -19,4 +19,13 @@
     <ProjectReference Include="..\Models\Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Goodjob.Common">
+      <HintPath>..\..\..\Test\dll\Goodjob.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Goodjob.Encryption">
+      <HintPath>\\192.168.2.252\Goodjob2017\winbin\Goodjob.Encryption.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

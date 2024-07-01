@@ -6,9 +6,17 @@ using Entity.Sitedata;
 using Iservice;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Models;
+using ServiceStack;
 using System.Data;
+using System.Dynamic;
+using System.Net;
+using System.Numerics;
+using System.Reflection.Emit;
+using System.Text.RegularExpressions;
+using MemInfo = Entity.Base.MemInfo;
 
 namespace Service
 {
@@ -17,33 +25,21 @@ namespace Service
         private readonly BaseDbContext _basedb;
         private readonly GoodjobContext _goodjobdb;
         private readonly sitedataContext _sitedatadb;
+        private readonly ILogger<CompanyService> _logger;
 
-        public CompanyService(BaseDbContext dbContext, GoodjobContext dbContext1, sitedataContext sitedata)
+        public CompanyService(BaseDbContext dbContext, GoodjobContext dbContext1, sitedataContext sitedata, ILogger<CompanyService> logger)
         {
             _basedb = dbContext;
             _goodjobdb = dbContext1;
             _sitedatadb = sitedata;
+            _logger = logger;
         }
-        public async Task<(List<OutMemInfoDto>, int Count)> GetOutMemInfoAsync(BaseFilterModels baseFilter)
+        public async Task<(List<OutMemInfoDto>, int Count)> GetOutMemInfoAsync(BaseFilterModels baseFilter, int esId)
         {
-            // 创建一个参数表达式，代表要查询的实体类型
-            //ParameterExpression param = Expression.Parameter(typeof(Entity.Base.MemInfo), "x");
-
-            // 创建一个属性访问表达式，代表要查询的实体的某个属性
-            //MemberExpression property = Expression.Property(param, "YourPropertyName");
-
-            // 创建一个常量表达式，代表需要查询的属性的值
-            //ConstantExpression value = Expression.Constant("YourValue");
-
-            // 创建一个等于表达式，表示属性与常量的比较
-            //BinaryExpression equal = Expression.Equal(property, value);
-
-            // 将所有表达式组合成一个lambda表达式
-            //Expression<Func<Entity.Base.MemInfo, bool>> lambda = Expression.Lambda<Func<Entity.Base.MemInfo, bool>>(equal, param);
-
-            var list = await _basedb.Set<Entity.Base.MemInfo>().Select(o =>
+            var list = await _goodjobdb.Set<MemInfoJy>().Where(o=>o.Esid == esId).Select(o =>
                 new OutMemInfoDto
                 {
+                    EsId=o.Esid,
                     MemId = o.MemId,
                     MemName = o.MemName,
                     AddressC = o.AddressC,
@@ -65,7 +61,7 @@ namespace Service
             list = list.Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToList();
             foreach (var item in list)
             {
-                item.PosNum = _basedb.Set<Entity.Base.MemPosition>().Where(m => m.MemId == item.MemId)
+                item.PosNum = _goodjobdb.Set<Entity.Goodjob.MemPosition>().Where(m => m.MemId == item.MemId)
                     .Select(o => o.PosId).Count();
             }
 
@@ -74,7 +70,7 @@ namespace Service
         }
         public async Task<List<OutMemPositionDto>> GetList(int memId)
         {
-            var list = await _basedb.Set<Entity.Base.MemPosition>().Where(m => m.MemId == memId).Select(o =>
+            var list = await _goodjobdb.Set<Entity.Goodjob.MemPosition>().Where(m => m.MemId == memId).Select(o =>
                 new OutMemPositionDto
                 {
                     MemId = o.MemId,
@@ -179,8 +175,15 @@ namespace Service
                         EduText = dto.EduText,
                         WorkText = dto.WorkText,
                     };
-                    //登记便签
-                    var registerSign = new RegisterSign { MyUserId = myUserId, Type = dto.RegisterType };
+                    //登记便签,登记记录
+                    var registerSign = new RegisterSign
+                    {
+                        MyUserId = myUserId, 
+                        Type = dto.RegisterType,
+                        Esid= dto.EsId,
+                        CreateTime = DateTime.Now,
+                        BelongType = belongType,
+                    };
 
                     var sysRegisterFrom = new SysRegisterFrom()
                     {
@@ -233,13 +236,22 @@ namespace Service
                 }
                 catch (Exception e)
                 {
+                    string logPath = "path/logfile.txt"; // 替换为实际的文件路径
+                    Directory.CreateDirectory(Path.GetDirectoryName(logPath)); // 确保目录存在
+                    using (StreamWriter sw = File.AppendText(logPath))
+                    {
+                        sw.WriteLine("Error occurred at: " + DateTime.Now);
+                        sw.WriteLine(e.Message);
+                        sw.WriteLine(e.StackTrace);
+                        // 可以添加更多的异常详情
+                    }
                     await dbContextTransaction.RollbackAsync();
                 }
             }
             return ii > 6;
         }
 
-        public async Task<(List<OutUnemploymentDto>,int Count)> GetUnemployment(string tenantId, BaseFilterModels baseFilter)
+        public async Task<(List<OutUnemploymentDto>,int Count)> GetUnemployment(string tenantId, BaseFilterModels baseFilter, int esId)
         {
             int belongType = RegisterFrom.Dictionarys1[tenantId];
             var list = await (from a in _goodjobdb.Set<MyUser>()
@@ -247,7 +259,7 @@ namespace Service
                               from b in tableGroup1.DefaultIfEmpty()
                               join c in _goodjobdb.Set<MyResume>() on a.MyUserId equals c.MyUserId into tableGroup2
                               from c in tableGroup2.DefaultIfEmpty()
-                              where b != null
+                              where b != null && b.Esid == esId
                               select new OutUnemploymentDto
                               {
                                   MyUserId = a.MyUserId,
@@ -278,13 +290,500 @@ namespace Service
 
         public async Task<List<OutJiuYeStationDto>> GetJiuYeStation(int adminId)
         {
-            var list = await _sitedatadb.Set<JiuYeStation>().Where(j=>j.AdminUser == adminId || j.SecondaryUser == adminId).Select(o=>new OutJiuYeStationDto
+            List<OutJiuYeStationDto> outJiuYe = new List<OutJiuYeStationDto>();
+
+            using (var command = _sitedatadb.Database.GetDbConnection().CreateCommand())
             {
-                Title = o.Title,
-                AffiliatedUnit=o.AffiliatedUnit,
-                Introduce = o.Introduce,
+                command.CommandText = "InquireJYStation";
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                var typeInfoIdParam2 = new SqlParameter("@ZphAdminID", System.Data.SqlDbType.Int);
+                typeInfoIdParam2.Value = adminId;
+                command.Parameters.Add(typeInfoIdParam2);
+                await command.Connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (reader.Read())
+                    {
+                        OutJiuYeStationDto outJiu=new OutJiuYeStationDto();
+                        outJiu.Id = Convert.ToInt32(reader["Id"]);
+                        outJiu.Title = reader["Title"].ToString();
+                        outJiu.AffiliatedUnit = reader["AffiliatedUnit"].ToString();
+                        outJiu.Eaddress = reader["Eaddress"].ToString();
+                        outJiu.Introduce = reader["Introduce"].ToString();
+                        outJiu.EaddressP = Convert.ToInt32(reader["EAddressP"]);
+                        outJiu.EaddressC = Convert.ToInt32(reader["EAddressC"]);
+                        outJiu.EaddressD = Convert.ToInt32(reader["EAddressD"]);
+                        outJiu.EaddressT = Convert.ToInt32(reader["EAddressT"]);
+                        outJiu.TopImage = reader["ImageUrl1"].ToString();
+                        outJiu.ListImage = reader["ImageUrl2"].ToString();
+                        outJiu.EnvironmentImage = reader["ImageUrl3"].ToString();
+                        outJiu.MemCount = Convert.ToInt32(reader["MemCount"]);
+                        outJiu.PosCount = Convert.ToInt32(reader["PosCount"]);
+                        outJiu.PeopleCount = Convert.ToInt32(reader["PeopleCount"]);
+                        outJiuYe.Add(outJiu);
+
+                    }
+                }
+            }
+            return outJiuYe;
+        }
+
+        public async Task<(List<OutUnemploymentInfoDto>, int Count)> GetOutUnemploymentInfoList(BaseFilterModels baseFilter,int esId)
+        {
+            List<OutUnemploymentInfoDto> getList = new List<OutUnemploymentInfoDto>();
+            //int belongType = RegisterFrom.Dictionarys1[tenantId];
+            using (var command = _goodjobdb.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = "InquireUnemploymentInfo";
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+                
+                var typeInfoIdParam1 = new SqlParameter("@MyUserID", System.Data.SqlDbType.Int);
+                typeInfoIdParam1.Value = 0;
+                command.Parameters.Add(typeInfoIdParam1);
+
+                var typeInfoIdParam2 = new SqlParameter("@EsId", System.Data.SqlDbType.Int);
+                typeInfoIdParam2.Value = esId;
+                command.Parameters.Add(typeInfoIdParam2);
+                var typeInfoIdParam3 = new SqlParameter("@Filter", System.Data.SqlDbType.VarChar);
+                if (string.IsNullOrEmpty(baseFilter.Name))
+                {
+                    typeInfoIdParam3.Value = "";
+                }
+                else
+                {
+                    typeInfoIdParam3.Value = baseFilter.Name;
+                }
+                command.Parameters.Add(typeInfoIdParam3);
+
+                var typeInfoIdParam4 = new SqlParameter("@TypeId", System.Data.SqlDbType.VarChar);
+                typeInfoIdParam4.Value = baseFilter.Id;
+                command.Parameters.Add(typeInfoIdParam4);
+
+                // 打开连接并执行
+                await command.Connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    // 处理结果集
+                    while (await reader.ReadAsync())
+                    {
+                        OutUnemploymentInfoDto dto = new OutUnemploymentInfoDto();
+                        dto.MyUserId = Convert.ToInt32(reader["MyUserId"]);
+                        dto.UserName = reader["UserName"].ToString();
+                        dto.Email = reader["Email"].ToString();
+                        dto.PhoneNum = reader["PhoneNum"].ToString();
+                        dto.Sex = Convert.ToInt32(reader["Sex"]);
+                        dto.Nationality = Convert.ToInt32(reader["Nationality"]);
+                        dto.Birthday = Convert.ToDateTime(reader["Birthday"]);
+                        dto.CardType = Convert.ToInt32(reader["CardType"]);
+                        dto.CardNum = reader["CardNum"].ToString();
+                        dto.Height = Convert.ToInt32(reader["Height"]);
+                        dto.Weight = Convert.ToInt32(reader["Weight"]);
+                        dto.MaritalStatus = Convert.ToInt32(reader["MaritalStatus"]);
+                        dto.HometownP = Convert.ToInt32(reader["Hometown_P"]);
+                        dto.HometownC = Convert.ToInt32(reader["Hometown_C"]);
+                        dto.LocationP = Convert.ToInt32(reader["Location_P"]);
+                        dto.LocationC = Convert.ToInt32(reader["Location_C"]);
+                        dto.SelfDescription = reader["SelfDescription"].ToString();
+                        dto.ZipCode = reader["ZipCode"].ToString();
+                        dto.ResumeTitle = reader["JobSeeking"].ToString();
+                        dto.EduText = reader["EduText"].ToString();
+                        dto.WorkText = reader["WorkText"].ToString();
+                        dto.LastPosName = reader["LastPosName"].ToString();
+                        dto.WorkedYear = Convert.ToInt32(reader["WorkedYear"]);
+                        dto.JobLocationP = Convert.ToInt32(reader["JobLocation_P"]);
+                        dto.JobLocationC = Convert.ToInt32(reader["JobLocation_C"]);
+                        dto.RegisterType = Convert.ToInt32(reader["Type"]);
+                        dto.DegreeId = Convert.ToInt32(reader["DegreeId"]);
+                        getList.Add(dto);
+                    }
+                }
+            }
+            //foreach (var itemDto in getList)
+            //{
+            //    var list1 = await _goodjobdb.Set<MyJobFunction1>().Where(m => m.MyUserId == itemDto.MyUserId)
+            //        .ToListAsync();
+            //    foreach (var item in list1)
+            //    {
+            //        if (itemDto.JobFunctionList == null)
+            //            itemDto.JobFunctionList = new List<MyJobFunctionModels>();
+            //        MyJobFunctionModels model = new MyJobFunctionModels();
+            //        model.JobFunctionBig = item.JobFunctionBig;
+            //        model.JobFunctionSmall = item.JobFunctionSmall;
+            //        model.JobFunctionId = item.JobFunctionId;
+            //        itemDto.JobFunctionList.Add(model);
+            //    }
+            //}
+            int count=getList.Count;
+            getList= getList.Skip((baseFilter.PageIndex-1)*baseFilter.PageSize).Take(baseFilter.PageSize).ToList();
+            return (getList,count);
+        }
+
+        public async Task<bool> UpUnemploymentInfo(UpRegisterUnemploymentDto unemployment)
+        {
+            int ii = 0;
+            using (var dbContextTransaction = await _goodjobdb.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    
+
+                    int myUserId = unemployment.MyUserId;
+                    //录入来源
+                    //int registerFrom = RegisterFrom.Dictionarys[tenantId];
+                    //简历属性
+                    //int belongType = RegisterFrom.Dictionarys1[tenantId];
+                    var userInfo = await _goodjobdb.Set<MyUser>().Where(m => m.MyUserId == myUserId).SingleAsync();
+                    userInfo.UserName = unemployment.UserName;
+                    userInfo.PhoneNum = unemployment.PhoneNum;
+                    userInfo.Email = unemployment.Email;
+                    var myResumeInfo = await _goodjobdb.Set<MyResume>().Where(m => m.MyUserId == myUserId).SingleAsync();
+                    myResumeInfo.PerName = unemployment.UserName;
+                    myResumeInfo.Height = (short)unemployment.Height;
+                    myResumeInfo.Weight = (short)unemployment.Weight;
+                    myResumeInfo.Sex = (byte)unemployment.Sex;
+                    myResumeInfo.MobileNum = unemployment.PhoneNum;
+                    myResumeInfo.Birthday = unemployment.Birthday;
+                    myResumeInfo.LocationP = unemployment.LocationP;
+                    myResumeInfo.LocationC = unemployment.LocationC;
+                    myResumeInfo.HometownP = unemployment.HometownP;
+                    myResumeInfo.HometownC = unemployment.HometownC;
+                    myResumeInfo.ZipCode = unemployment.ZipCode;
+                    myResumeInfo.CardType = (byte)unemployment.CardType;
+                    myResumeInfo.CardNum = unemployment.CardNum;
+                    myResumeInfo.MaritalStatus = (byte)unemployment.MaritalStatus;
+                    myResumeInfo.Nationality = (byte)unemployment.Nationality;
+                    myResumeInfo.JobSeeking = unemployment.ResumeTitle;
+                    myResumeInfo.DegreeId = (byte)unemployment.DegreeId;
+                    myResumeInfo.WorkedYear = (byte)unemployment.WorkedYear;
+                    myResumeInfo.SelfDescription = unemployment.SelfDescription;
+                    myResumeInfo.LocationC = unemployment.LocationC;
+                    var myJobLocationInfo = await _goodjobdb.Set<MyJobLocation>().Where(m => m.MyUserId == myUserId).SingleAsync();
+                    myJobLocationInfo.JobLocationP = unemployment.JobLocationP;
+                    myJobLocationInfo.JobLocationC = unemployment.JobLocationC;
+                    var myJobFunctionInfo =  _goodjobdb.Set<MyJobFunction1>().Where(m => m.MyUserId == myUserId);
+                    if(myJobFunctionInfo != null)
+                    {
+                        _goodjobdb.RemoveRange(myJobFunctionInfo);
+                    }
+                    foreach (var item in unemployment.JobFunctionList)
+                    {
+                        var myJobFunction1 = new MyJobFunction1()
+                        {
+                            MyUserId = myUserId,
+                            JobFunctionId = item.JobFunctionId,
+                            JobFunctionBig = item.JobFunctionBig,
+                            JobFunctionSmall = item.JobFunctionSmall,
+                        };
+                        await _goodjobdb.Set<MyJobFunction1>().AddAsync(myJobFunction1);
+                    }
+                    var myResumeOldTextInfo = await _goodjobdb.Set<MyResumeOldText>().Where(m => m.MyUserId == myUserId).SingleAsync();
+                    myResumeOldTextInfo.EduText = unemployment.EduText;
+                    myResumeOldTextInfo.WorkText = unemployment.WorkText;
+
+                    //_goodjobdb.UpdateRange(userInfo, myResumeInfo, myJobLocationInfo, myJobFunctionInfo, myResumeOldTextInfo);
+
+                    var registerSign = await _goodjobdb.Set<RegisterSign>().Where(m => m.MyUserId == myUserId).SingleAsync();
+                    registerSign.Type = unemployment.RegisterType;
+
+                    #region update Goodjob_Query.dbo.MyResume_Query
+
+                    var parms = new SqlParameter[]
+                    {
+                        new SqlParameter("@PerName", unemployment.UserName),
+                        new SqlParameter("@Sex", unemployment.Sex),
+                        new SqlParameter("@Birthday", unemployment.Birthday),
+                        new SqlParameter("@Hometown_P", unemployment.HometownP),
+                        new SqlParameter("@Hometown_C", unemployment.HometownC),
+                        new SqlParameter("@Location_P", unemployment.LocationP),
+                        new SqlParameter("@Location_C", unemployment.LocationC),
+                        new SqlParameter("@DegreeID", unemployment.DegreeId),
+                        new SqlParameter("@WorkedYear", unemployment.WorkedYear),
+                        new SqlParameter("@LastPosName", unemployment.LastPosName),
+                        new SqlParameter("@MyUserID", unemployment.MyUserId),
+                    };
+                    //var parameters = new object[] { unemployment.UserName, unemployment.Sex, unemployment.Birthday, unemployment.HometownP, unemployment.HometownC, unemployment.LocationP, unemployment.LocationC, unemployment.DegreeId, unemployment.WorkedYear, unemployment.LastPosName };
+                    string sql =
+                        "update Goodjob_Query.dbo.MyResume_Query  set PerName=@PerName, Sex=@Sex,Birthday=@Birthday,Hometown_P=@Hometown_P,Hometown_C=@Hometown_C,Location_P=@Location_P,Location_C=@Location_C,DegreeID=@DegreeID,WorkedYear=@WorkedYear,LastPosName=@LastPosName,UpdateDate=GETDATE()  where MyUserID=@MyUserID";
+                    _goodjobdb.Database.ExecuteSqlRaw(sql, parms);
+                    
+                    #endregion
+
+
+                    ii = await _goodjobdb.SaveChangesAsync();
+
+                    await dbContextTransaction.CommitAsync();
+                }
+                catch (Exception e)
+                {
+                    string logPath = "path/logfile.txt"; // 替换为实际的文件路径
+                    Directory.CreateDirectory(Path.GetDirectoryName(logPath)); // 确保目录存在
+                    using (StreamWriter sw = File.AppendText(logPath))
+                    {
+                        sw.WriteLine("Error occurred at: " + DateTime.Now);
+                        sw.WriteLine(e.Message);
+                        sw.WriteLine(e.StackTrace);
+                        // 可以添加更多的异常详情
+                    }
+                    await dbContextTransaction.RollbackAsync();
+                }
+            }
+            return ii > 0;
+        }
+
+        public async Task<List<OutUnemploymentInfoDto>> GetOutUnemploymentInfo(int myUserId)
+        {
+            
+            //int belongType = RegisterFrom.Dictionarys1[tenantId];
+            List<OutUnemploymentInfoDto> getList = new List<OutUnemploymentInfoDto>();
+
+            using (var command = _goodjobdb.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = "InquireUnemploymentInfo";
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                var typeInfoIdParam1 = new SqlParameter("@MyUserID", System.Data.SqlDbType.Int);
+                typeInfoIdParam1.Value = myUserId;
+                command.Parameters.Add(typeInfoIdParam1);
+
+                var typeInfoIdParam2 = new SqlParameter("@EsId", System.Data.SqlDbType.Int);
+                typeInfoIdParam2.Value = 0;
+                command.Parameters.Add(typeInfoIdParam2);
+
+                var typeInfoIdParam3 = new SqlParameter("@Filter", System.Data.SqlDbType.VarChar);
+                typeInfoIdParam3.Value = "";
+                command.Parameters.Add(typeInfoIdParam3);
+
+                var typeInfoIdParam4 = new SqlParameter("@TypeId", System.Data.SqlDbType.VarChar);
+                typeInfoIdParam4.Value = 0;
+                command.Parameters.Add(typeInfoIdParam4);
+
+                // 打开连接并执行
+                await command.Connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    // 处理结果集
+                    while (await reader.ReadAsync())
+                    {
+                        OutUnemploymentInfoDto dto = new OutUnemploymentInfoDto();
+                        dto.MyUserId = Convert.ToInt32(reader["MyUserId"]);
+                        dto.UserName = reader["UserName"].ToString();
+                        dto.Email = reader["Email"].ToString();
+                        dto.PhoneNum = reader["PhoneNum"].ToString();
+                        dto.Sex = Convert.ToInt32(reader["Sex"]);
+                        dto.Nationality = Convert.ToInt32(reader["Nationality"]);
+                        dto.Birthday = Convert.ToDateTime(reader["Birthday"]);
+                        dto.CardType = Convert.ToInt32(reader["CardType"]);
+                        dto.CardNum = reader["CardNum"].ToString();
+                        dto.Height = Convert.ToInt32(reader["Height"]);
+                        dto.Weight = Convert.ToInt32(reader["Weight"]);
+                        dto.MaritalStatus = Convert.ToInt32(reader["MaritalStatus"]);
+                        dto.HometownP = Convert.ToInt32(reader["Hometown_P"]);
+                        dto.HometownC = Convert.ToInt32(reader["Hometown_C"]);
+                        dto.LocationP = Convert.ToInt32(reader["Location_P"]);
+                        dto.LocationC = Convert.ToInt32(reader["Location_C"]);
+                        dto.SelfDescription = reader["SelfDescription"].ToString();
+                        dto.ZipCode = reader["ZipCode"].ToString();
+                        dto.ResumeTitle = reader["JobSeeking"].ToString();
+                        dto.EduText = reader["EduText"].ToString();
+                        dto.WorkText = reader["WorkText"].ToString();
+                        dto.LastPosName = reader["LastPosName"].ToString();
+                        dto.WorkedYear = Convert.ToInt32(reader["WorkedYear"]);
+                        dto.JobLocationP = Convert.ToInt32(reader["JobLocation_P"]);
+                        dto.JobLocationC = Convert.ToInt32(reader["JobLocation_C"]);
+                        dto.RegisterType = Convert.ToInt32(reader["Type"]);
+                        dto.DegreeId = Convert.ToInt32(reader["DegreeId"]);
+                        getList.Add(dto);
+                    }
+                }
+            }
+            foreach (var itemDto in getList)
+            {
+                var list1 = await _goodjobdb.Set<MyJobFunction1>().Where(m => m.MyUserId == itemDto.MyUserId)
+                    .ToListAsync();
+                foreach (var item in list1)
+                {
+                    if (itemDto.JobFunctionList == null)
+                        itemDto.JobFunctionList = new List<MyJobFunctionModels>();
+                    MyJobFunctionModels model = new MyJobFunctionModels();
+                    model.JobFunctionBig = item.JobFunctionBig;
+                    model.JobFunctionSmall = item.JobFunctionSmall;
+                    model.JobFunctionId = item.JobFunctionId;
+                    itemDto.JobFunctionList.Add(model);
+                }
+            }
+            return getList;
+        }
+
+        public async Task<ResultModel> AddMemInfo(InputMemInfoJyDto inputMemInfoJy, string tenantId, string lastLoginIp, int loginId)
+        {
+
+            ResultModel resultModel = new ResultModel();
+            #region MyRegion
+            var list = await _goodjobdb.Set<MemInfoJy>().Where(m => m.MemName == inputMemInfoJy.MemName && m.MemName != "").FirstOrDefaultAsync();
+            var list1 = await _basedb.Set<MemInfo>().Where(m => m.MemName == inputMemInfoJy.MemName && m.MemName != "").FirstOrDefaultAsync();
+            if (list != null || list1!=null)
+            {
+                resultModel.Result = false;
+                resultModel.Message = "企业名称重复";
+                return resultModel;
+            }
+            var list2 = await _goodjobdb.Set<MemInfoJy>().Where(m => m.Email == inputMemInfoJy.Email && m.Email != "").FirstOrDefaultAsync();
+            var list3 = await _basedb.Set<MemInfo>().Where(m => m.Email == inputMemInfoJy.Email && m.Email != "").FirstOrDefaultAsync();
+            if (list2 != null || list3 != null)
+            {
+                resultModel.Result = false;
+                resultModel.Message = "邮箱重复";
+                return resultModel;
+            }
+
+            #endregion
+            int ii = 0;
+            using (var dbContextTransaction = await _goodjobdb.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    
+                    
+                    var parameter = new SqlParameter
+                    {
+                        ParameterName = "@MaxID",
+                        Direction = ParameterDirection.Output,
+                        SqlDbType = SqlDbType.Int
+                    };
+
+                    _goodjobdb.Database.ExecuteSqlRaw("EXEC Sys_GetMaxID @TableName, @MaxID OUTPUT",
+                        new SqlParameter("@TableName", "Mem_Users"),
+                        parameter);
+
+                    int memId = (int)parameter.Value;
+                    int belongType = RegisterFrom.Dictionarys1[tenantId];
+                    var memUser = new MemUser()
+                    {
+                        UserName = inputMemInfoJy.UserName,
+                        PassWord = Goodjob.Encryption.Encryption.EncryptDES(inputMemInfoJy.PassWord.Trim()),
+                        MemId = memId,
+                        LastLoginIp = lastLoginIp,
+                        EndValidDate= DateTime.Now.AddDays(15),
+                        RegisterBy= loginId,
+                    };
+                    var memInfoJy = new MemInfoJy()
+                    {
+                        MemId = memId,
+                        MemName = inputMemInfoJy.MemName,
+                        LicenceNumber = "",
+                        Calling = inputMemInfoJy.Calling,
+                        Properity = inputMemInfoJy.Properity,
+                        RegisterFund = 1,
+                        EmployeeNumber = 1,
+                        ContactPerson = inputMemInfoJy.ContactPerson,
+                        ContactDepartment = inputMemInfoJy.ContactDepartment,
+                        ContactTelZ = inputMemInfoJy.ContactTelZ,
+                        ContactTel = inputMemInfoJy.ContactTel,
+                        ContactTelE = inputMemInfoJy.ContactTelE,
+                        TelShowFlag = inputMemInfoJy.TelShowFlag,
+                        Phone = inputMemInfoJy.Phone,
+                        PhoneFlag = inputMemInfoJy.PhoneFlag,
+                        ZipCode = "000000",
+                        AddressP = inputMemInfoJy.AddressP,
+                        AddressC = inputMemInfoJy.AddressC,
+                        AddressD = inputMemInfoJy.AddressD,
+                        AddressT = inputMemInfoJy.AddressT,
+                        Esid = inputMemInfoJy.Esid,
+                    };
+                    await _goodjobdb.AddAsync(memUser);
+                    await _goodjobdb.AddAsync(memInfoJy);
+                    ii = await _goodjobdb.SaveChangesAsync();
+
+                    await dbContextTransaction.CommitAsync();
+                }
+                catch (Exception e)
+                {
+                    string logPath = "path/logfile.txt"; // 替换为实际的文件路径
+                    Directory.CreateDirectory(Path.GetDirectoryName(logPath)); // 确保目录存在
+                    using (StreamWriter sw = File.AppendText(logPath))
+                    {
+                        sw.WriteLine("Error occurred at: " + DateTime.Now);
+                        sw.WriteLine(e.Message);
+                        sw.WriteLine(e.StackTrace);
+                        // 可以添加更多的异常详情
+                    }
+                    await dbContextTransaction.RollbackAsync();
+                }
+                
+            }
+
+            if (ii > 1)
+            {
+                resultModel.Result = true;
+                resultModel.Message = "添加成功";
+                return resultModel;
+            }
+
+            resultModel.Message = "注册失败";
+            resultModel.Result = false;
+            return resultModel;
+
+        }
+
+        public async Task<List<OutMemInfoListByName>> OutMemInfoByName(string memName)
+        {
+            var list = await _basedb.Set<MemInfo>().Where(m => m.MemName.Contains(memName)).Select(o=>new OutMemInfoListByName
+            {
+                MemId=o.MemId,
+                MemName=o.MemName,
+                FoundDate=o.FoundDate,
+                AddressP=o.AddressP,
+                AddressC= o.AddressC,
+                Address=o.Address,
+                RegisterDate= o.RegisterDate,
+                Phone= o.Phone,
             }).ToListAsync();
+            var result = await _goodjobdb.Set<MemInfoJy>().Where(m => m.MemName.Contains(memName)).Select(o =>
+                new OutMemInfoListByName
+                {
+                    MemId = o.MemId,
+                    MemName = o.MemName,
+                    FoundDate = o.FoundDate,
+                    AddressP = o.AddressP,
+                    AddressC = o.AddressC,
+                    Address = o.Address,
+                    RegisterDate = o.RegisterDate,
+                    Phone = o.Phone,
+                }).ToListAsync();
+            list.AddRange(result);
+            //list.Add(result);
             return list;
+        }
+
+        public async Task<(List<ApplytRegisterForJob>, int Count)> GetApplytRegisterForJob(BaseFilterModels baseFilter, int esId)
+        {
+            int count;
+            var list = await _goodjobdb.Set<ApplytRegisterForJob>().Where(m => m.Esid == esId).ToListAsync();
+            if (string.IsNullOrEmpty(baseFilter.Name))
+            {
+                count = list.Count;
+                return (list.Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToList(), count);
+            }
+            list = list.Where(o => o.ContactPerson.Contains(baseFilter.Name)).ToList();
+            count = list.Count;
+
+            return (list.Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToList(), count);
+        }
+
+        public async Task<(List<RecruitmentRegister>,int Count)> GetRecruitmentRegister(BaseFilterModels baseFilter, int esId)
+        {
+            int count;
+            var list = await _goodjobdb.Set<RecruitmentRegister>().Where(m => m.Esid == esId).ToListAsync();
+            if (string.IsNullOrEmpty(baseFilter.Name))
+            {
+                count = list.Count;
+                return (list.Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToList(), count);
+            }
+            list = list.Where(o => o.MemName.Contains(baseFilter.Name)).ToList();
+            count = list.Count;
+
+            return (list.Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToList(), count);
         }
     }
 }

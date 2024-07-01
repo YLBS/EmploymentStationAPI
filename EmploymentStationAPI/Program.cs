@@ -10,14 +10,29 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text;
-using Entity.GoodBoss;
 using Entity.Goodjob_Other;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Models;
 using Entity.Sitedata;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 添加日志服务到容器
+//builder.Services.AddLogging(config =>
+//{
+//    config.ClearProviders(); // 清除已存在的日志提供程序（可选）
+//    //config.AddFilter();
+//    //config.AddFile(o =>
+//    //{
+//    //    o.FileName = "logs/app-"; // 日志文件前缀
+//    //    o.LogDirectory = "logs"; // 日志目录
+//    //    o.Append = true; // 是否追加日志
+//    //    o.FileSizeLimit = 1024 * 1024 * 10; // 日志文件大小限制（这里设置为10MB）
+//    //    o.RetainedFileCountLimit = 10; // 保留的日志文件数量
+//    //});
+//});
 
 //跨域
 builder.Services.AddCors(options =>
@@ -157,6 +172,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IOutDicService, OutDicService>();
 builder.Services.AddTransient<IJwtService, JwtService>();
+builder.Services.AddTransient<IJobService, JobService>();
 
 builder.Services.AddHttpContextAccessor();
 

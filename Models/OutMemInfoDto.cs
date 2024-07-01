@@ -6,7 +6,7 @@ namespace Models
 {
     public class OutMemInfoDto
     {
-
+        public int EsId { get; set; }
         public int MemId { get; set; }
         public string MemName { get; set; } = null!;
         public int AddressP { get; set; }
