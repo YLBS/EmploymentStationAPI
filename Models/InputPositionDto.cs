@@ -6,8 +6,15 @@ using System.Threading.Tasks;
 
 namespace Models
 {
+    /// <summary>
+    /// 添加职位DTO
+    /// </summary>
     public class InputPositionDto
     {
+        /// <summary>
+        /// 驿站ID
+        /// </summary>
+        public int EsId { get; set; }
         /// <summary>
         /// 企业Id
         /// </summary>

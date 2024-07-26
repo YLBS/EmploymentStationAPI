@@ -31,6 +31,8 @@ namespace Models
         /// </summary>
         public int CandidatesNum { get; set; }
 
+        public int Salary { get; set; }
+
         /// <summary>
         /// 最低月薪
         /// </summary>
@@ -44,6 +46,17 @@ namespace Models
         /// 默认12薪
         /// </summary>
         public int SalaryMonth { get; set; }
+        public string SalaryRange { get; set; }
+        public string SalaryStr
+        {
+            get
+            {
+                if (Salary == 0) return SalaryRange;
+                return Goodjob.Common.NameProvider.GetSalaryName(Salary);
+            }
+        }
+
+        
 
         /// <summary>
         /// 岗位描述
@@ -102,5 +115,6 @@ namespace Models
         /// 手机电话
         /// </summary>
         public string? MobileNum { get; set; }
+        public int esId { get; set; }
     }
 }

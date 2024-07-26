@@ -4,6 +4,9 @@ using Goodjob.Common;
 
 namespace Models
 {
+    /// <summary>
+    /// 输出职位
+    /// </summary>
     public class OutMemPositionDto
     {
         public int MemId { get; set; }

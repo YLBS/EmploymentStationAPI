@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Entity.Base
 {
-    public partial class MemInfo
+    public partial class BaseMemInfo
     {
         public int MemId { get; set; }
         public string MemName { get; set; } = null!;

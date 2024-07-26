@@ -63,6 +63,9 @@ namespace Models
         /// 曾工作的年份
         /// </summary>
         public byte WorkedYear { get; set; }
+        /// <summary>
+        /// 登记类型 1 失业人员 ，其余为退伍军人
+        /// </summary>
         public int RegisterType { get; set; }
 
         public string RegisterTypeName {
@@ -114,7 +117,5 @@ namespace Models
 
             }
         }
-
-
     }
 }

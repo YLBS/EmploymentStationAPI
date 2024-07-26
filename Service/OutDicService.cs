@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore.Internal;
+using System.Collections;
 
 namespace Service
 {
@@ -143,7 +144,7 @@ namespace Service
 
         public async Task<List<OutDicModels>> GetDicJobFunctionBig()
         {
-            var getList = await _goodjobOtherContext.Set<DicJobFunctionBig> ().OrderBy(o => o.OrderId).Select(o => new OutDicModels
+            var getList = await _goodjobOtherContext.Set<DicJobFunctionsBig> ().OrderBy(o => o.OrderId).Select(o => new OutDicModels
             {
                 Name = o.Pname,
                 Id = o.Id,
@@ -226,11 +227,12 @@ namespace Service
 
         public async Task<List<OutDicModels>> GetDicSalaryNew()
         {
-            var getList = await _goodjobOtherContext.Set<DicSalaryNew>().OrderBy(o => o.OrderId).Select(o => new OutDicModels
-            {
-                Name = o.Name,
-                Id = o.Id,
-            }).ToListAsync();
+            var getList = await _goodjobOtherContext.Set<DicSalary>().Where(o=>o.Id!=1).OrderBy(o => o.OrderId).Select(o =>
+                new OutDicModels
+                {
+                    Name = o.Id == 20 ? "面谈" : o.Name,
+                    Id = o.Id,
+                }).ToListAsync();
             return getList;
         }
     }

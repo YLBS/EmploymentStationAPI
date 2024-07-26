@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Models
 {
+    /// <summary>
+    /// 添加企业DTO
+    /// </summary>
     public partial class InputMemInfoJyDto
     {
         /// <summary>

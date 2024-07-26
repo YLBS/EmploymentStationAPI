@@ -16,23 +16,9 @@ using Microsoft.IdentityModel.Tokens;
 using Models;
 using Entity.Sitedata;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// 添加日志服务到容器
-//builder.Services.AddLogging(config =>
-//{
-//    config.ClearProviders(); // 清除已存在的日志提供程序（可选）
-//    //config.AddFilter();
-//    //config.AddFile(o =>
-//    //{
-//    //    o.FileName = "logs/app-"; // 日志文件前缀
-//    //    o.LogDirectory = "logs"; // 日志目录
-//    //    o.Append = true; // 是否追加日志
-//    //    o.FileSizeLimit = 1024 * 1024 * 10; // 日志文件大小限制（这里设置为10MB）
-//    //    o.RetainedFileCountLimit = 10; // 保留的日志文件数量
-//    //});
-//});
 
 //跨域
 builder.Services.AddCors(options =>
@@ -68,14 +54,18 @@ builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1", Description= "description." });
+
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    options.IncludeXmlComments(xmlPath);
+    options.IncludeXmlComments(xmlPath,true);
+    var xmlFile1 = "Models.xml";
+    var xmlPath1 = Path.Combine(AppContext.BaseDirectory, xmlFile1);
+    options.IncludeXmlComments(xmlPath1);
     #region Swagger配置支持请求头参数传递 
     options.AddSecurityDefinition("TenantId", new OpenApiSecurityScheme
     {
-        Description = "输入tenantId,格式为 tenantId hg",
+        Description = "输入tenantId",
         Name = "tenantId",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -173,6 +163,8 @@ builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IOutDicService, OutDicService>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddTransient<IJobService, JobService>();
+builder.Services.AddTransient<ILiveAndZph, LiveAndZph>();
+
 
 builder.Services.AddHttpContextAccessor();
 
@@ -312,7 +304,9 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-
+    c.DocumentTitle = "My API";
+    c.DocExpansion(DocExpansion.None);
+    //c.RoutePrefix = string.Empty;
 });
 
 app.UseCors("MyCorsPolicy");

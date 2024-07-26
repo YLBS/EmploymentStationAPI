@@ -3,6 +3,7 @@ using Entity.Base;
 using Entity.Goodjob;
 using Entity.Goodjob_Other;
 using Entity.Sitedata;
+using Goodjob.Common;
 using Iservice;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ using System.Net;
 using System.Numerics;
 using System.Reflection.Emit;
 using System.Text.RegularExpressions;
-using MemInfo = Entity.Base.MemInfo;
+using BaseMemInfo = Entity.Base.BaseMemInfo;
 
 namespace Service
 {
@@ -34,38 +35,120 @@ namespace Service
             _sitedatadb = sitedata;
             _logger = logger;
         }
-        public async Task<(List<OutMemInfoDto>, int Count)> GetOutMemInfoAsync(BaseFilterModels baseFilter, int esId)
+        public async Task<(List<OutMemInfoDto>, int Count)> GetOutMemInfoAsync(BaseFilterModels baseFilter, int esId, string beginDate, string endDate)
         {
-            var list = await _goodjobdb.Set<MemInfoJy>().Where(o=>o.Esid == esId).Select(o =>
-                new OutMemInfoDto
+            List<OutMemInfoDto> outMemInfos = new List<OutMemInfoDto>();
+            int count = 0;
+            using (var command = _goodjobdb.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = "GetMemInfoByEsId";
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+                var param1 = new SqlParameter("@ESID", System.Data.SqlDbType.Int);
+                param1.Value = esId;
+                command.Parameters.Add(param1);
+                var param2 = new SqlParameter("@PageSize", System.Data.SqlDbType.Int);
+                param2.Value = baseFilter.PageSize;
+                command.Parameters.Add(param2);
+                var param3 = new SqlParameter("@PageNumber", System.Data.SqlDbType.Int);
+                param3.Value = baseFilter.PageIndex;
+                command.Parameters.Add(param3);
+                var param4 = new SqlParameter("@Filter", System.Data.SqlDbType.VarChar);
+                string filter = " and 1=1 ";
+                if (!string.IsNullOrEmpty(baseFilter.Name))
                 {
-                    EsId=o.Esid,
-                    MemId = o.MemId,
-                    MemName = o.MemName,
-                    AddressC = o.AddressC,
-                    AddressP = o.AddressP,
-                    Address = o.Address,
-                    ContactPerson = o.ContactPerson,
-                    Phone = o.Phone,
-                    RegisterDate = o.RegisterDate,
-                }).ToListAsync();
-            if (!string.IsNullOrEmpty(baseFilter.Name))
-            {
-                list= list.Where(o=>o.MemName.Contains(baseFilter.Name)).ToList();
-            }
-            if (baseFilter.Id!=0)
-            {
-                //list = list.Where(o => o.MemName.Contains(baseFilter.Name)).ToList();
-            }
-            int count = list.Count;
-            list = list.Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToList();
-            foreach (var item in list)
-            {
-                item.PosNum = _goodjobdb.Set<Entity.Goodjob.MemPosition>().Where(m => m.MemId == item.MemId)
-                    .Select(o => o.PosId).Count();
+                    filter += " and MemName like '%" + baseFilter.Name + "%' ";
+                }
+                if (!string.IsNullOrEmpty(beginDate))
+                {
+                    filter += " and RegisterDate >='" + beginDate+"' ";
+                }
+                if (!string.IsNullOrEmpty(endDate))
+                {
+                    filter += " and RegisterDate <='" + endDate + "' ";
+                }
+                param4.Value = filter;
+                command.Parameters.Add(param4);
+
+               
+                if (baseFilter.Id == 1)
+                {
+                    var param5 = new SqlParameter("@posSumFilter", System.Data.SqlDbType.VarChar);
+                    param5.Value = " and PosNum !=0 ";
+                    command.Parameters.Add(param5);
+                }
+                if (baseFilter.Id == 2)
+                {
+                    var param5 = new SqlParameter("@posSumFilter", System.Data.SqlDbType.VarChar);
+                    param5.Value = " and PosNum =0 ";
+                    command.Parameters.Add(param5);
+                }
+
+                await command.Connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (reader.Read())
+                    {
+                        OutMemInfoDto outMem= new OutMemInfoDto();
+                        outMem.EsId = Convert.ToInt32(reader["ESId"]);
+                        outMem.MemId = Convert.ToInt32(reader["MemID"]);
+                        outMem.MemName = reader["MemName"].ToString(); 
+                        outMem.AddressC = Convert.ToInt32(reader["Address_C"]);
+                        outMem.AddressP = Convert.ToInt32(reader["Address_P"]);
+                        outMem.Address = reader["Address"].ToString();
+                        outMem.ContactPerson = reader["ContactPerson"].ToString();
+                        outMem.Phone = reader["Phone"].ToString();
+                        outMem.RegisterDate = Convert.ToDateTime(reader["RegisterDate"]);
+                        outMem.PosNum = Convert.ToInt32(reader["PosNum"]);
+                        outMemInfos.Add(outMem);
+                    }
+
+                    if (reader.NextResult())
+                    {
+                        while (reader.Read())
+                        {
+                            count = Convert.ToInt32(reader[0]);
+                        }
+                    }
+                }
+
             }
 
-            return (list, count);
+            return (outMemInfos, count);
+            #region MyRegion
+
+            //var list = await _goodjobdb.Set<MemInfoJy>().Where(o=>o.Esid == esId).Select(o =>
+            //    new OutMemInfoDto
+            //    {
+            //        EsId=o.Esid,
+            //        MemId = o.MemId,
+            //        MemName = o.MemName,
+            //        AddressC = o.AddressC,
+            //        AddressP = o.AddressP,
+            //        Address = o.Address,
+            //        ContactPerson = o.ContactPerson,
+            //        Phone = o.Phone,
+            //        RegisterDate = o.RegisterDate,
+            //    }).ToListAsync();
+            //if (!string.IsNullOrEmpty(baseFilter.Name))
+            //{
+            //    list= list.Where(o=>o.MemName.Contains(baseFilter.Name)).ToList();
+            //}
+            //if (baseFilter.Id!=0)
+            //{
+            //    //list = list.Where(o => o.MemName.Contains(baseFilter.Name)).ToList();
+            //}
+            //int count = list.Count;
+            //list = list.Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToList();
+            //foreach (var item in list)
+            //{
+            //    item.PosNum = _goodjobdb.Set<Entity.Goodjob.MemPosition>().Where(m => m.MemId == item.MemId)
+            //        .Select(o => o.PosId).Count();
+            //}
+
+            #endregion
+
+
+            //return (list, count);
 
         }
         public async Task<List<OutMemPositionDto>> GetList(int memId)
@@ -106,7 +189,7 @@ namespace Service
                     //录入来源
                     int registerFrom = RegisterFrom.Dictionarys[tenantId];
                     //简历属性
-                    int belongType = RegisterFrom.Dictionarys1[tenantId];
+                    int belongType = Convert.ToInt32(tenantId);
 
                     var user = new MyUser()
                     {
@@ -236,14 +319,14 @@ namespace Service
                 }
                 catch (Exception e)
                 {
-                    string logPath = "path/logfile.txt"; // 替换为实际的文件路径
+                    ii = 0;
+                    string logPath = "path/logfile.txt";
                     Directory.CreateDirectory(Path.GetDirectoryName(logPath)); // 确保目录存在
                     using (StreamWriter sw = File.AppendText(logPath))
                     {
                         sw.WriteLine("Error occurred at: " + DateTime.Now);
                         sw.WriteLine(e.Message);
                         sw.WriteLine(e.StackTrace);
-                        // 可以添加更多的异常详情
                     }
                     await dbContextTransaction.RollbackAsync();
                 }
@@ -251,9 +334,9 @@ namespace Service
             return ii > 6;
         }
 
-        public async Task<(List<OutUnemploymentDto>,int Count)> GetUnemployment(string tenantId, BaseFilterModels baseFilter, int esId)
+        public async Task<(List<OutUnemploymentDto>,int Count)> GetUnemployment(BaseFilterModels baseFilter, int esId)
         {
-            int belongType = RegisterFrom.Dictionarys1[tenantId];
+            //int belongType = RegisterFrom.Dictionarys1[tenantId];
             var list = await (from a in _goodjobdb.Set<MyUser>()
                               join b in _goodjobdb.Set<RegisterSign>() on a.MyUserId equals b.MyUserId into tableGroup1
                               from b in tableGroup1.DefaultIfEmpty()
@@ -272,7 +355,7 @@ namespace Service
                                   LocationP = c.LocationP,
                                   LocationC = c.LocationC,
                                   WorkedYear = c.WorkedYear,
-                                  BelongType = a.BelongType,
+                                  //BelongType = a.BelongType,
                               }).ToListAsync();
             if (!string.IsNullOrEmpty(baseFilter.Name))
             {
@@ -284,7 +367,7 @@ namespace Service
             }
 
             int count = list.Count;
-            list = list.Where(o=>o.BelongType== belongType).Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToList();
+            //list = list.Where(o=>o.BelongType== belongType).Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToList();
             return (list, count);
         }
 
@@ -321,16 +404,49 @@ namespace Service
                         outJiu.MemCount = Convert.ToInt32(reader["MemCount"]);
                         outJiu.PosCount = Convert.ToInt32(reader["PosCount"]);
                         outJiu.PeopleCount = Convert.ToInt32(reader["PeopleCount"]);
+                        outJiu.BelongType = Convert.ToInt32(reader["BelongType"]);
                         outJiuYe.Add(outJiu);
 
                     }
                 }
+                await _sitedatadb.Database.CloseConnectionAsync();
             }
+
+            foreach (OutJiuYeStationDto jy in outJiuYe)
+            {
+                using (var command = _sitedatadb.Database.GetDbConnection().CreateCommand())
+                {
+                    command.CommandText = "GetMem_PosCountByDB";
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    var parm1 = new SqlParameter("@Type", SqlDbType.Int);
+                    parm1.Value = jy.BelongType;
+                    command.Parameters.Add(parm1);
+                    //await command.Connection.OpenAsync();
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (reader.Read())
+                        {
+                            jy.MemCount += reader.GetInt32(0);
+                        }
+                        if (reader.NextResult())
+                        {
+                            while (reader.Read())
+                            {
+                                jy.PosCount += reader.GetInt32(0);
+                            }
+                        }
+                    }
+                    await _sitedatadb.Database.CloseConnectionAsync();
+                }
+            }
+
             return outJiuYe;
         }
 
         public async Task<(List<OutUnemploymentInfoDto>, int Count)> GetOutUnemploymentInfoList(BaseFilterModels baseFilter,int esId)
         {
+            int count = 0;
             List<OutUnemploymentInfoDto> getList = new List<OutUnemploymentInfoDto>();
             //int belongType = RegisterFrom.Dictionarys1[tenantId];
             using (var command = _goodjobdb.Database.GetDbConnection().CreateCommand())
@@ -338,27 +454,35 @@ namespace Service
                 command.CommandText = "InquireUnemploymentInfo";
                 command.CommandType = System.Data.CommandType.StoredProcedure;
                 
-                var typeInfoIdParam1 = new SqlParameter("@MyUserID", System.Data.SqlDbType.Int);
-                typeInfoIdParam1.Value = 0;
-                command.Parameters.Add(typeInfoIdParam1);
+                var param1 = new SqlParameter("@MyUserID", System.Data.SqlDbType.Int);
+                param1.Value = 0;
+                command.Parameters.Add(param1);
 
-                var typeInfoIdParam2 = new SqlParameter("@EsId", System.Data.SqlDbType.Int);
-                typeInfoIdParam2.Value = esId;
-                command.Parameters.Add(typeInfoIdParam2);
-                var typeInfoIdParam3 = new SqlParameter("@Filter", System.Data.SqlDbType.VarChar);
+                var param2 = new SqlParameter("@EsId", System.Data.SqlDbType.Int);
+                param2.Value = esId;
+                command.Parameters.Add(param2);
+                var param3 = new SqlParameter("@Filter", System.Data.SqlDbType.VarChar);
                 if (string.IsNullOrEmpty(baseFilter.Name))
                 {
-                    typeInfoIdParam3.Value = "";
+                    param3.Value = "";
                 }
                 else
                 {
-                    typeInfoIdParam3.Value = baseFilter.Name;
+                    param3.Value = baseFilter.Name;
                 }
-                command.Parameters.Add(typeInfoIdParam3);
+                command.Parameters.Add(param3);
 
-                var typeInfoIdParam4 = new SqlParameter("@TypeId", System.Data.SqlDbType.VarChar);
-                typeInfoIdParam4.Value = baseFilter.Id;
-                command.Parameters.Add(typeInfoIdParam4);
+                var param4 = new SqlParameter("@TypeId", System.Data.SqlDbType.VarChar);
+                param4.Value = baseFilter.Id;
+                command.Parameters.Add(param4);
+
+                var param5 = new SqlParameter("@PageIndex", System.Data.SqlDbType.VarChar);
+                param5.Value = baseFilter.PageIndex;
+                command.Parameters.Add(param5);
+
+                var param6 = new SqlParameter("@PageSize", System.Data.SqlDbType.VarChar);
+                param6.Value = baseFilter.PageSize;
+                command.Parameters.Add(param6);
 
                 // 打开连接并执行
                 await command.Connection.OpenAsync();
@@ -391,11 +515,17 @@ namespace Service
                         dto.WorkText = reader["WorkText"].ToString();
                         dto.LastPosName = reader["LastPosName"].ToString();
                         dto.WorkedYear = Convert.ToInt32(reader["WorkedYear"]);
-                        dto.JobLocationP = Convert.ToInt32(reader["JobLocation_P"]);
-                        dto.JobLocationC = Convert.ToInt32(reader["JobLocation_C"]);
+                        dto.JobLocationP = reader["JobLocation_P"] is DBNull ? 0 : Convert.ToInt32(reader["JobLocation_P"]);
+                        dto.JobLocationC = reader["JobLocation_C"] is DBNull ? 0 : Convert.ToInt32(reader["JobLocation_C"]);
                         dto.RegisterType = Convert.ToInt32(reader["Type"]);
                         dto.DegreeId = Convert.ToInt32(reader["DegreeId"]);
                         getList.Add(dto);
+                    }
+
+                    if (await reader.NextResultAsync())
+                    {
+                        while (await reader.ReadAsync())
+                            count = reader.GetInt32(0);
                     }
                 }
             }
@@ -414,8 +544,8 @@ namespace Service
             //        itemDto.JobFunctionList.Add(model);
             //    }
             //}
-            int count=getList.Count;
-            getList= getList.Skip((baseFilter.PageIndex-1)*baseFilter.PageSize).Take(baseFilter.PageSize).ToList();
+
+            //getList= getList.Skip((baseFilter.PageIndex-1)*baseFilter.PageSize).Take(baseFilter.PageSize).ToList();
             return (getList,count);
         }
 
@@ -458,11 +588,24 @@ namespace Service
                     myResumeInfo.WorkedYear = (byte)unemployment.WorkedYear;
                     myResumeInfo.SelfDescription = unemployment.SelfDescription;
                     myResumeInfo.LocationC = unemployment.LocationC;
-                    var myJobLocationInfo = await _goodjobdb.Set<MyJobLocation>().Where(m => m.MyUserId == myUserId).SingleAsync();
-                    myJobLocationInfo.JobLocationP = unemployment.JobLocationP;
-                    myJobLocationInfo.JobLocationC = unemployment.JobLocationC;
-                    var myJobFunctionInfo =  _goodjobdb.Set<MyJobFunction1>().Where(m => m.MyUserId == myUserId);
-                    if(myJobFunctionInfo != null)
+                    var myJobLocationInfo = await _goodjobdb.Set<MyJobLocation>().Where(m => m.MyUserId == myUserId).FirstOrDefaultAsync();
+                    if(myJobLocationInfo != null){
+                        myJobLocationInfo.JobLocationP = unemployment.JobLocationP;
+                        myJobLocationInfo.JobLocationC = unemployment.JobLocationC;
+                    }
+                    else
+                    {
+                        var myJobLocation = new MyJobLocation()
+                        {
+                            MyUserId = myUserId,
+                            JobLocationC = unemployment.JobLocationC,
+                            JobLocationP = unemployment.JobLocationP,
+                        };
+                        await _goodjobdb.Set<MyJobLocation>().AddAsync(myJobLocation);
+                    }
+
+                    var myJobFunctionInfo = await _goodjobdb.Set<MyJobFunction1>().Where(m => m.MyUserId == myUserId).ToListAsync();
+                    if(myJobFunctionInfo.Count != 0)
                     {
                         _goodjobdb.RemoveRange(myJobFunctionInfo);
                     }
@@ -477,9 +620,24 @@ namespace Service
                         };
                         await _goodjobdb.Set<MyJobFunction1>().AddAsync(myJobFunction1);
                     }
-                    var myResumeOldTextInfo = await _goodjobdb.Set<MyResumeOldText>().Where(m => m.MyUserId == myUserId).SingleAsync();
-                    myResumeOldTextInfo.EduText = unemployment.EduText;
-                    myResumeOldTextInfo.WorkText = unemployment.WorkText;
+
+                    try
+                    {
+                        var myResumeOldTextInfo = await _goodjobdb.Set<MyResumeOldText>().Where(m => m.MyUserId == myUserId).SingleAsync();
+                        myResumeOldTextInfo.EduText = unemployment.EduText;
+                        myResumeOldTextInfo.WorkText = unemployment.WorkText;
+                    }
+                    catch (Exception e)
+                    {
+                        var myResumeOldText = new MyResumeOldText()
+                        {
+                            MyUserId = myUserId,
+                            EduText = unemployment.EduText,
+                            WorkText = unemployment.WorkText,
+                        };
+                        await _goodjobdb.Set<MyResumeOldText>().AddAsync(myResumeOldText);
+                    }
+                    
 
                     //_goodjobdb.UpdateRange(userInfo, myResumeInfo, myJobLocationInfo, myJobFunctionInfo, myResumeOldTextInfo);
 
@@ -505,8 +663,30 @@ namespace Service
                     //var parameters = new object[] { unemployment.UserName, unemployment.Sex, unemployment.Birthday, unemployment.HometownP, unemployment.HometownC, unemployment.LocationP, unemployment.LocationC, unemployment.DegreeId, unemployment.WorkedYear, unemployment.LastPosName };
                     string sql =
                         "update Goodjob_Query.dbo.MyResume_Query  set PerName=@PerName, Sex=@Sex,Birthday=@Birthday,Hometown_P=@Hometown_P,Hometown_C=@Hometown_C,Location_P=@Location_P,Location_C=@Location_C,DegreeID=@DegreeID,WorkedYear=@WorkedYear,LastPosName=@LastPosName,UpdateDate=GETDATE()  where MyUserID=@MyUserID";
-                    _goodjobdb.Database.ExecuteSqlRaw(sql, parms);
-                    
+                   int i= _goodjobdb.Database.ExecuteSqlRaw(sql, parms);
+                   if(i == 0){
+                       #region insert into Goodjob_Query.dbo.MyResume_Query
+                       var parms1 = new SqlParameter[]{
+                           new SqlParameter() { ParameterName = "@MyUserID", SqlDbType =  SqlDbType.Int, Size = 100, Value = myUserId },
+                           new SqlParameter() {  ParameterName = "@PerName", SqlDbType =  SqlDbType.VarChar, Size = 100, Value = unemployment.UserName },
+                           new SqlParameter() { ParameterName = "@Sex", SqlDbType =  SqlDbType.Int, Size = 100, Value = unemployment.Sex },
+                           new SqlParameter() { ParameterName = "@Birthday", SqlDbType =  SqlDbType.SmallDateTime, Size = 100, Value = unemployment.Birthday },
+                           new SqlParameter() { ParameterName = "@Hometown_P", SqlDbType =  SqlDbType.Int, Size = 100, Value = unemployment.HometownP },
+                           new SqlParameter() { ParameterName = "@Hometown_C", SqlDbType =  SqlDbType.Int, Size = 100, Value = unemployment.HometownC  },
+                           new SqlParameter() { ParameterName = "@Location_P",  SqlDbType =  SqlDbType.Int, Size = 100, Value = unemployment.LocationP },
+                           new SqlParameter() { ParameterName = "@Location_C", SqlDbType =  SqlDbType.Int, Size = 100, Value = unemployment.LocationC },
+                           new SqlParameter() { ParameterName = "@DegreeID", SqlDbType =  SqlDbType.Int, Size = 100, Value = unemployment.DegreeId },
+                           new SqlParameter() { ParameterName = "@WorkedYear", SqlDbType =  SqlDbType.Int, Size = 100, Value = unemployment.WorkedYear },
+
+                           new SqlParameter() { ParameterName = "@LastPosName", SqlDbType =  SqlDbType.VarChar, Size = 100, Value = unemployment.LastPosName},
+                           new SqlParameter() { ParameterName = "@ResumeStatus", SqlDbType =  SqlDbType.Int, Size = 100, Value = 1 },
+                           new SqlParameter() { ParameterName = "@BelongType", SqlDbType =  SqlDbType.Int, Size = 100, Value = userInfo.BelongType },
+                       };
+
+                       _goodjobdb.Database.ExecuteSqlRaw("EXEC [dbo].[Insert_MyResume_Query] @MyUserID,@PerName,@Sex,@Birthday,@Hometown_P,@Hometown_C,@Location_P,@Location_C,@DegreeID,@WorkedYear,@LastPosName,@ResumeStatus,@BelongType", parms1);
+                       #endregion
+                    }
+
                     #endregion
 
 
@@ -516,14 +696,13 @@ namespace Service
                 }
                 catch (Exception e)
                 {
-                    string logPath = "path/logfile.txt"; // 替换为实际的文件路径
+                    string logPath = "path/logfile.txt"; 
                     Directory.CreateDirectory(Path.GetDirectoryName(logPath)); // 确保目录存在
                     using (StreamWriter sw = File.AppendText(logPath))
                     {
                         sw.WriteLine("Error occurred at: " + DateTime.Now);
                         sw.WriteLine(e.Message);
                         sw.WriteLine(e.StackTrace);
-                        // 可以添加更多的异常详情
                     }
                     await dbContextTransaction.RollbackAsync();
                 }
@@ -589,8 +768,8 @@ namespace Service
                         dto.WorkText = reader["WorkText"].ToString();
                         dto.LastPosName = reader["LastPosName"].ToString();
                         dto.WorkedYear = Convert.ToInt32(reader["WorkedYear"]);
-                        dto.JobLocationP = Convert.ToInt32(reader["JobLocation_P"]);
-                        dto.JobLocationC = Convert.ToInt32(reader["JobLocation_C"]);
+                        dto.JobLocationP = reader["JobLocation_P"] is DBNull ? 0 : Convert.ToInt32(reader["JobLocation_P"]);
+                        dto.JobLocationC = reader["JobLocation_C"] is DBNull ? 0 : Convert.ToInt32(reader["JobLocation_C"]);
                         dto.RegisterType = Convert.ToInt32(reader["Type"]);
                         dto.DegreeId = Convert.ToInt32(reader["DegreeId"]);
                         getList.Add(dto);
@@ -615,13 +794,13 @@ namespace Service
             return getList;
         }
 
-        public async Task<ResultModel> AddMemInfo(InputMemInfoJyDto inputMemInfoJy, string tenantId, string lastLoginIp, int loginId)
+        public async Task<ResultModel> AddMemInfo(InputMemInfoJyDto inputMemInfoJy, string lastLoginIp, int loginId)
         {
 
             ResultModel resultModel = new ResultModel();
             #region MyRegion
             var list = await _goodjobdb.Set<MemInfoJy>().Where(m => m.MemName == inputMemInfoJy.MemName && m.MemName != "").FirstOrDefaultAsync();
-            var list1 = await _basedb.Set<MemInfo>().Where(m => m.MemName == inputMemInfoJy.MemName && m.MemName != "").FirstOrDefaultAsync();
+            var list1 = await _basedb.Set<BaseMemInfo>().Where(m => m.MemName == inputMemInfoJy.MemName && m.MemName != "").FirstOrDefaultAsync();
             if (list != null || list1!=null)
             {
                 resultModel.Result = false;
@@ -629,7 +808,7 @@ namespace Service
                 return resultModel;
             }
             var list2 = await _goodjobdb.Set<MemInfoJy>().Where(m => m.Email == inputMemInfoJy.Email && m.Email != "").FirstOrDefaultAsync();
-            var list3 = await _basedb.Set<MemInfo>().Where(m => m.Email == inputMemInfoJy.Email && m.Email != "").FirstOrDefaultAsync();
+            var list3 = await _basedb.Set<BaseMemInfo>().Where(m => m.Email == inputMemInfoJy.Email && m.Email != "").FirstOrDefaultAsync();
             if (list2 != null || list3 != null)
             {
                 resultModel.Result = false;
@@ -643,8 +822,6 @@ namespace Service
             {
                 try
                 {
-                    
-                    
                     var parameter = new SqlParameter
                     {
                         ParameterName = "@MaxID",
@@ -657,7 +834,7 @@ namespace Service
                         parameter);
 
                     int memId = (int)parameter.Value;
-                    int belongType = RegisterFrom.Dictionarys1[tenantId];
+                    //int belongType = RegisterFrom.Dictionarys1[tenantId];
                     var memUser = new MemUser()
                     {
                         UserName = inputMemInfoJy.UserName,
@@ -690,6 +867,7 @@ namespace Service
                         AddressD = inputMemInfoJy.AddressD,
                         AddressT = inputMemInfoJy.AddressT,
                         Esid = inputMemInfoJy.Esid,
+                       // BelongType = belongType,
                     };
                     await _goodjobdb.AddAsync(memUser);
                     await _goodjobdb.AddAsync(memInfoJy);
@@ -699,14 +877,13 @@ namespace Service
                 }
                 catch (Exception e)
                 {
-                    string logPath = "path/logfile.txt"; // 替换为实际的文件路径
+                    string logPath = "path/logfile.txt"; 
                     Directory.CreateDirectory(Path.GetDirectoryName(logPath)); // 确保目录存在
                     using (StreamWriter sw = File.AppendText(logPath))
                     {
                         sw.WriteLine("Error occurred at: " + DateTime.Now);
                         sw.WriteLine(e.Message);
                         sw.WriteLine(e.StackTrace);
-                        // 可以添加更多的异常详情
                     }
                     await dbContextTransaction.RollbackAsync();
                 }
@@ -728,7 +905,7 @@ namespace Service
 
         public async Task<List<OutMemInfoListByName>> OutMemInfoByName(string memName)
         {
-            var list = await _basedb.Set<MemInfo>().Where(m => m.MemName.Contains(memName)).Select(o=>new OutMemInfoListByName
+            var list = await _basedb.Set<BaseMemInfo>().Where(m => m.MemName.Contains(memName)).Select(o=>new OutMemInfoListByName
             {
                 MemId=o.MemId,
                 MemName=o.MemName,

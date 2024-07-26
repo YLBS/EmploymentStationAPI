@@ -100,6 +100,7 @@ namespace Models
         /// 手机电话
         /// </summary>
         public string? MobileNum { get; set; }
-        
+        public int esId { get; set; }
+
     }
 }

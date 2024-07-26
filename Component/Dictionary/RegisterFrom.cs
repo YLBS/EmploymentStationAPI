@@ -16,15 +16,18 @@ namespace Component.Dictionary
             {"dg",15},
             {"hg",16},
             {"ns",17},
+            {"1",15},
+            {"4",16},
+            {"2",17},
         };
         /// <summary>
         /// 简历属性
         /// </summary>
         public static IDictionary<string, int> Dictionarys1 = new Dictionary<string, int>
         {
-            {"dg",1},
-            {"hg",4},
-            {"ns",2},
+            {"1",1},
+            {"4",4},
+            {"2",2},
         };
     }
 }

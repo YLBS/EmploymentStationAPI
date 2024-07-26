@@ -6,6 +6,9 @@ using Models;
 
 namespace EmploymentStationAPI.Controllers
 {
+    /// <summary>
+    /// 登录认证
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class AuthenticationController : ControllerBase
@@ -31,7 +34,7 @@ namespace EmploymentStationAPI.Controllers
                 return Ok(new
                 {
                     token,
-                    tenantId = jwt.AffiliatedUnit
+                    //tenantId = jwt.AffiliatedUnit
                 });
             }
             return BadRequest("账号或密码错误");

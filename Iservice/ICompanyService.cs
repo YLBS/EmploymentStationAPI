@@ -14,7 +14,7 @@ namespace Iservice
         /// 返回企业列表
         /// </summary>
         /// <returns></returns>
-        Task<(List<OutMemInfoDto>,int Count)> GetOutMemInfoAsync(BaseFilterModels baseFilter, int esId);
+        Task<(List<OutMemInfoDto>,int Count)> GetOutMemInfoAsync(BaseFilterModels baseFilter, int esId, string beginDate, string endDate);
         /// <summary>
         /// 获取职位信息
         /// </summary>
@@ -32,11 +32,10 @@ namespace Iservice
         /// <summary>
         /// 获取人员列表
         /// </summary>
-        /// <param name="tenantId"></param>
         /// <param name="baseFilter"></param>
         /// <param name="esId"></param>
         /// <returns></returns>
-        Task<(List<OutUnemploymentDto>, int Count)> GetUnemployment(string tenantId, BaseFilterModels baseFilter,int esId);
+        Task<(List<OutUnemploymentDto>, int Count)> GetUnemployment(BaseFilterModels baseFilter,int esId);
         /// <summary>
         /// 返回就业驿站名称
         /// </summary>
@@ -67,7 +66,7 @@ namespace Iservice
         /// <param name="inputMemInfoJy"></param>
         /// <param name="tenantId"></param>
         /// <returns></returns>
-        Task<ResultModel> AddMemInfo(InputMemInfoJyDto inputMemInfoJy,string tenantId,string lastLoginIp,int loginId);
+        Task<ResultModel> AddMemInfo(InputMemInfoJyDto inputMemInfoJy, string lastLoginIp, int loginId);
 
         /// <summary>
         /// 模糊查询，返回企业信息

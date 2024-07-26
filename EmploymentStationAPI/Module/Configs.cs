@@ -47,32 +47,6 @@
             
         }
 
-        #region 注释掉
-
-        /// <summary>
-        /// 根据租户ID选择合适的连接字符串
-        /// </summary>
-        /// <param name="tenantId"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        private static string GetConnectionStringForTenant(string tenantId)
-        {
-            // 这里应该是根据租户ID获取对应连接字符串的逻辑
-            // 例如，从配置文件或服务获取
-            switch (tenantId)
-            {
-                case "tenant1":
-                    return "YourConnectionStringForTenant1";
-                case "tenant2":
-                    return "YourConnectionStringForTenant2";
-                // 其他租户
-                default:
-                    throw new InvalidOperationException("Invalid tenant ID.");
-            }
-        }
-
-        #endregion
-
 
         public static string GetConnectionString(this HttpContext context)
         {
@@ -87,9 +61,9 @@
 
         private static IDictionary<string, string> Dictionarys = new Dictionary<string, string>
         {
-            {"dg","dagang"},
-            {"hg","huangge"},
-            {"ns","nansha"},
+            {"1","dagang"},
+            {"2","nansha"},
+            {"4","huangge"},
         };
         
     }

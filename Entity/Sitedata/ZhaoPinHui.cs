@@ -99,5 +99,9 @@ namespace Entity.Sitedata
         /// 搜索页顶部是否预告招聘会
         /// </summary>
         public bool TeaserInTop { get; set; }
+        /// <summary>
+        /// 驿站ID
+        /// </summary>
+        public int Esid { get; set; }
     }
 }

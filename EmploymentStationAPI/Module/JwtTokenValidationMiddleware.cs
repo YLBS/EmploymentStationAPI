@@ -80,7 +80,7 @@ namespace EmploymentStationAPI.Module
                 // Token has expired
                 return null;
             }
-            catch (Exception e)///SecurityTokenInvalidException
+            catch (Exception e)//SecurityTokenInvalidException
             {
                 // Token is invalid
                 return null;

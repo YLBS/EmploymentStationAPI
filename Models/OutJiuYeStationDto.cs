@@ -45,6 +45,7 @@ namespace Models
         public int PosCount { get; set; }
 
         public int PeopleCount { get; set; }
+        public int BelongType { get; set; }
 
     }
 }

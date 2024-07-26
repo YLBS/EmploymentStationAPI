@@ -2243,6 +2243,10 @@ namespace Entity.Sitedata
                     .HasDefaultValueSql("('')")
                     .HasComment("招聘会二维码群名");
 
+                entity.Property(e => e.Esid)
+                    .HasColumnName("ESId")
+                    .HasComment("驿站ID");
+
                 entity.Property(e => e.ZphType).HasComment("0为正常 1为校园");
             });
 

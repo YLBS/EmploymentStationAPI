@@ -4578,6 +4578,10 @@ namespace Entity.Goodjob
                     .HasMaxLength(10)
                     .HasDefaultValueSql("('')");
 
+                entity.Property(e => e.Esid)
+                    .HasColumnName("ESId")
+                    .HasComment("驿站ID");
+
                 entity.Property(e => e.Title).HasMaxLength(200);
 
                 entity.Property(e => e.WxDesc).HasMaxLength(500);

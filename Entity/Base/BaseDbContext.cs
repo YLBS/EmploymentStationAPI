@@ -19,12 +19,14 @@ namespace Entity.Base
         {
 
         }
-        public virtual DbSet<Entity.Base.MemPosition> MemPositions { get; set; } = null!;
-        public virtual DbSet<MemInfo> MemInfos { get; set; } = null!;
+        public virtual DbSet<Entity.Base.BaseMemPosition> MemPositions { get; set; } = null!;
+        public virtual DbSet<BaseMemInfo> MemInfos { get; set; } = null!;
+        public virtual DbSet<BaseMemPosJobLocation> BaseMemPosJobLocation { get; set; } = null!;
+        public virtual DbSet<BaseMemPosJobFunction> BaseMemPosJobFunctions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Entity.Base.MemPosition>(entity =>
+            modelBuilder.Entity<Entity.Base.BaseMemPosition>(entity =>
             {
                 entity.HasKey(e => e.PosId);
 
@@ -164,7 +166,8 @@ namespace Entity.Base
                     .IsUnicode(false)
                     .HasDefaultValueSql("('')");
             });
-            modelBuilder.Entity<Entity.Base.MemInfo>(entity =>
+           
+            modelBuilder.Entity<Entity.Base.BaseMemInfo>(entity =>
             {
                 entity.HasKey(e => e.MemId);
 
@@ -296,6 +299,34 @@ namespace Entity.Base
                 entity.Property(e => e.ZipCode)
                     .HasMaxLength(50)
                     .HasDefaultValueSql("('')");
+            });
+
+            modelBuilder.Entity<BaseMemPosJobLocation>(entity =>
+            {
+                entity.ToTable("Mem_PosJobLocation");
+
+                entity.HasIndex(e => e.PosId, "Mem_PosJobLocation_PosID");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.JobLocationC).HasColumnName("JobLocation_C");
+
+                entity.Property(e => e.JobLocationP).HasColumnName("JobLocation_P");
+
+                entity.Property(e => e.PosId).HasColumnName("PosID");
+            });
+
+            modelBuilder.Entity<BaseMemPosJobFunction>(entity =>
+            {
+                entity.ToTable("Mem_PosJobFunction");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.JobFunctionBig).HasColumnName("JobFunction_big");
+
+                entity.Property(e => e.JobFunctionSmall).HasColumnName("JobFunction_small");
+
+                entity.Property(e => e.PosId).HasColumnName("PosID");
             });
         }
     }

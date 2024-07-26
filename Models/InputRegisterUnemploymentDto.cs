@@ -2,6 +2,9 @@
 
 namespace Models
 {
+    /// <summary>
+    /// 失业登记DTO
+    /// </summary>
     public class InputRegisterUnemploymentDto
     {
         public int EsId { get; set; }
