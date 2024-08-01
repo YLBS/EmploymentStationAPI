@@ -100,7 +100,13 @@ namespace Models
         /// 手机电话
         /// </summary>
         public string? MobileNum { get; set; }
-        public int esId { get; set; }
+        public int EsId { get; set; }
+
+
+        /// <summary>
+        /// 福利,int数组
+        /// </summary>
+        public int[] Welfa { get; set; }
 
     }
 }

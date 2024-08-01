@@ -104,5 +104,9 @@ namespace Models
         /// 手机电话
         /// </summary>
         public string? MobileNum { get; set; }
+        /// <summary>
+        /// 福利,int数组
+        /// </summary>
+        public int[] Welfa { get; set; }
     }
 }

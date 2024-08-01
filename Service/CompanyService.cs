@@ -68,8 +68,7 @@ namespace Service
                 }
                 param4.Value = filter;
                 command.Parameters.Add(param4);
-
-               
+                
                 if (baseFilter.Id == 1)
                 {
                     var param5 = new SqlParameter("@posSumFilter", System.Data.SqlDbType.VarChar);

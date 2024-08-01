@@ -17,6 +17,8 @@ using Models;
 using Entity.Sitedata;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using Component;
+using ServiceStack;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -164,7 +166,11 @@ builder.Services.AddScoped<IOutDicService, OutDicService>();
 builder.Services.AddTransient<IJwtService, JwtService>();
 builder.Services.AddTransient<IJobService, JobService>();
 builder.Services.AddTransient<ILiveAndZph, LiveAndZph>();
+builder.Services.AddTransient<INewsInfoService, NewsInfoService>();
 
+var mapper = AutoMapperConfig.ConfigureAutoMapper();
+builder.Services.AddSingleton(mapper);
+//builder.Services.AddAutoMapper(typeof(MappingProfile)); // Ìí¼ÓAutoMapper·þÎñ
 
 builder.Services.AddHttpContextAccessor();
 

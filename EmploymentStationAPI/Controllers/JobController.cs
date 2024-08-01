@@ -83,7 +83,7 @@ namespace EmploymentStationAPI.Controllers
         /// <param name="posIds">职位Id数组</param>
         /// <param name="state">状态</param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> UpPosState(int esId,int memId, int[] posIds,int state)
         {
             var result = await _jobService.UpPositionSate(esId, memId, posIds, state);

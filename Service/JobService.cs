@@ -1,6 +1,5 @@
 ﻿using Entity.Base;
 using Entity.Goodjob;
-using Entity.Sitedata;
 using Goodjob.Common;
 using Iservice;
 using Microsoft.Data.SqlClient;
@@ -9,8 +8,6 @@ using Models;
 using System.Data;
 using Component.Dictionary;
 using Entity.Goodjob_Other;
-using ServiceStack;
-using Microsoft.EntityFrameworkCore.Storage;
 using BaseMemPosition = Entity.Base.BaseMemPosition;
 
 namespace Service
@@ -29,6 +26,12 @@ namespace Service
         }
         public async Task<ResultModel> AddMemPosition(InputPositionDto dto)
         {
+            string welfa = "";
+            if (dto.Welfa.Length != 0)
+            {
+                welfa = string.Join("|", dto.Welfa);
+                welfa = "|" + welfa + "|";
+            }
             if (dto.EsId == 0)
             {
                 var resultModel = new ResultModel();
@@ -91,7 +94,7 @@ namespace Service
                             salaryRange = string.Format("{0}k以上", salaryMin);
                         }
 
-                        Entity.Base.BaseMemPosition list = new Entity.Base.BaseMemPosition
+                        BaseMemPosition list = new BaseMemPosition
                         {
                             Hires = false,
                             MemId = dto.MemId,
@@ -120,7 +123,8 @@ namespace Service
                             MobileNum = dto.MobileNum,
                             //SalaryMonth = dto.SalaryMonth,//无
                             JobLocation = cityName,
-                            EndValidDate = DateTime.Now.AddMonths(1)
+                            EndValidDate = DateTime.Now.AddMonths(1),
+                            Welfa= welfa
                         };
                         await _basedb.AddAsync(list);
                         ii = await _basedb.SaveChangesAsync();
@@ -156,7 +160,7 @@ namespace Service
             {
                 int ii = 0;
                 var resultModel = new ResultModel();
-                var result = await _goodjobdb.Set<Entity.Goodjob.MemPosition>()
+                var result = await _goodjobdb.Set<MemPosition>()
                     .Where(m => m.PosName == dto.PosName && m.MemId == dto.MemId && m.PosState == 2).FirstOrDefaultAsync();
                 if (result != null)
                 {
@@ -214,7 +218,7 @@ namespace Service
                             salaryRange = string.Format("{0}-{1}k", salaryMin, salaryMax);
                         }
 
-                        Entity.Goodjob.MemPosition list = new Entity.Goodjob.MemPosition
+                        MemPosition list = new MemPosition
                         {
                             Hires = false,
                             MemId = dto.MemId,
@@ -243,7 +247,8 @@ namespace Service
                             MobileNum = dto.MobileNum,
                             SalaryMonth = dto.SalaryMonth,
                             JobLocation = cityName,
-                            EndValidDate = DateTime.Now.AddMonths(1)
+                            EndValidDate = DateTime.Now.AddMonths(1),
+                            Welfa= welfa
                         };
                         await _goodjobdb.AddAsync(list);
 
@@ -281,8 +286,14 @@ namespace Service
 
         public async Task<ResultModel> UpMemPosition(UpPositonDto dto)
         {
+            string welfa = "";
+            if (dto.Welfa.Length != 0)
+            {
+                welfa = string.Join("|", dto.Welfa);
+                welfa = "|" + welfa + "|";
+            }
             var resultModel = new ResultModel();
-            if (dto.esId == 0)
+            if (dto.EsId == 0)
             {
                 var list = await _basedb.Set<BaseMemPosition>().Where(m => m.PosId == dto.PosId && m.MemId == dto.MemId).FirstOrDefaultAsync();
                 if (list == null)
@@ -360,6 +371,7 @@ namespace Service
                         list.MobileNum = dto.MobileNum;
                         //list.SalaryMonth = dto.SalaryMonth;
                         list.JobLocation = cityName;
+                        list.Welfa = welfa;
                         ii = await _basedb.SaveChangesAsync();
 
                         await dbContextTransaction.CommitAsync();
@@ -475,6 +487,7 @@ namespace Service
                         list.MobileNum = dto.MobileNum;
                         list.SalaryMonth = dto.SalaryMonth;
                         list.JobLocation = cityName;
+                        list.Welfa = welfa;
                         ii = await _goodjobdb.SaveChangesAsync();
 
                         await dbContextTransaction.CommitAsync();
@@ -511,11 +524,11 @@ namespace Service
         {
             if (esId == 0)
             {
-                byte state = 2;
+                byte[] state = {0,2};
                 var data = await _basedb.Set<BaseMemPosition>()
-                    .Where(m => m.PosState == state && m.MemId == memId).Select(o => new OutPositionDto
+                    .Where(m => state.Contains(m.PosState) && m.MemId == memId).Select(o => new OutPositionDto
                     {
-                        esId = esId,
+                        EsId = esId,
                         Salary = o.Salary,
                         MemId = o.MemId,
                         MemName = o.MemName,
@@ -536,6 +549,8 @@ namespace Service
                         Email = o.Email,
                         EmailCodeFlag = o.EmailCodeFlag,
                         MobileNum = o.MobileNum,
+                        PosState = o.PosState,
+                        WelfaStr=o.Welfa,
                     }).ToListAsync();
                 int count = data.Count;
                 foreach (var item in data)
@@ -571,10 +586,10 @@ namespace Service
             }
             else
             {
-                byte state = 2;
-                var data = await _goodjobdb.Set<Entity.Goodjob.MemPosition>().Where(m => m.PosState == state && m.MemId == memId).Select(o => new OutPositionDto
+                byte[] state = { 0, 2 };
+                var data = await _goodjobdb.Set<MemPosition>().Where(m => state.Contains(m.PosState) && m.MemId == memId).Select(o => new OutPositionDto
                 {
-                    esId = esId,
+                    EsId = esId,
                     MemId = o.MemId,
                     MemName = o.MemName,
                     PosId = o.PosId,
@@ -598,6 +613,8 @@ namespace Service
                     EmailCodeFlag = o.EmailCodeFlag,
                     MobileNum = o.MobileNum,
                     SalaryMonth = o.SalaryMonth,
+                    PosState = o.PosState,
+                    WelfaStr = o.Welfa,
                 }).ToListAsync();
                 int count = data.Count;
                 foreach (var item in data)
@@ -641,7 +658,7 @@ namespace Service
                 //byte state = 2;
                 var data = await _basedb.Set<BaseMemPosition>().Where(m => m.PosId == posId).Select(o => new OutPositionDto
                     {
-                        esId = esId,
+                        EsId = esId,
                         Salary = o.Salary,
                         SalaryRange = o.SalaryRange,
                         MemId = o.MemId,
@@ -663,7 +680,8 @@ namespace Service
                         Email = o.Email,
                         EmailCodeFlag = o.EmailCodeFlag,
                         MobileNum = o.MobileNum,
-                    }).FirstOrDefaultAsync();
+                        WelfaStr = o.Welfa,
+                }).FirstOrDefaultAsync();
                 if (data == null)
                 {
                     return data;
@@ -701,7 +719,7 @@ namespace Service
             {
                 var data = await _goodjobdb.Set<Entity.Goodjob.MemPosition>().Where(m => m.PosId == posId).Select(o => new OutPositionDto
                 {
-                    esId= esId,
+                    EsId = esId,
                     MemId = o.MemId,
                     MemName = o.MemName,
                     PosId = o.PosId,
@@ -727,6 +745,7 @@ namespace Service
                     EmailCodeFlag = o.EmailCodeFlag,
                     MobileNum = o.MobileNum,
                     SalaryMonth = o.SalaryMonth,
+                    WelfaStr = o.Welfa,
                 }).FirstOrDefaultAsync();
                 if (data == null)
                 {

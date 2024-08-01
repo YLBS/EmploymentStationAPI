@@ -5,7 +5,7 @@ using Models;
 
 namespace EmploymentStationAPI.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [Route("api/[controller]/[action]")]
     public class LiveController : ControllerBase
     {

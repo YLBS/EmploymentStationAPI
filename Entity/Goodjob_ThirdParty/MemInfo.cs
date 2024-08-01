@@ -45,5 +45,6 @@ namespace Entity.Goodjob_ThirdParty
         public bool Qqflag { get; set; }
         public string Phone { get; set; } = null!;
         public bool PhoneFlag { get; set; }
+        public string? MobileNum { get; set; }
     }
 }

@@ -115,6 +115,36 @@ namespace Models
         /// 手机电话
         /// </summary>
         public string? MobileNum { get; set; }
-        public int esId { get; set; }
+        /// <summary>
+        /// 驿站Id
+        /// </summary>
+        public int EsId { get; set; }
+        public byte PosState { get; set; }
+        public string PosStateStr
+        { 
+            get{
+                if (PosState == 2)
+                {
+                    return "发布中";
+
+                }
+                return "暂停发布";
+            }
+        }
+        public string WelfaStr { get; set; }
+
+        public int[] Welfa
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(WelfaStr))
+                {
+                    string[] s = WelfaStr.Split('|');
+                    s = s.Where(o => !string.IsNullOrEmpty(o)).ToArray();
+                    return Array.ConvertAll(s, int.Parse);
+                }
+                return null;
+            }
+        }
     }
 }

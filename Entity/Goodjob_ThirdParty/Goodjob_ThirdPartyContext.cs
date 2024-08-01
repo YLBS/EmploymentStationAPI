@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Entity.Goodjob_ThirdParty
 {
-    public partial class GoodjobHuanggeContext : DbContext
+    public partial class Goodjob_ThirdPartyContext : DbContext
     {
-        public GoodjobHuanggeContext()
+        public Goodjob_ThirdPartyContext()
         {
         }
 
-        public GoodjobHuanggeContext(DbContextOptions<GoodjobHuanggeContext> options)
+        public Goodjob_ThirdPartyContext(DbContextOptions<Goodjob_ThirdPartyContext> options)
             : base(options)
         {
         }
@@ -63,7 +63,7 @@ namespace Entity.Goodjob_ThirdParty
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Data Source=192.168.3.2;Initial Catalog=GoodjobHuangge;User ID=goodjobjishu;Password=juncaiwang/*-;Encrypt=False;");
+                optionsBuilder.UseSqlServer("Data Source=192.168.3.2;Initial Catalog=Goodjob_ThirdParty;User ID=goodjobjishu;Password=juncaiwang/*-;Encrypt=False;");
             }
         }
 
@@ -462,6 +462,11 @@ namespace Entity.Goodjob_ThirdParty
 
                 entity.Property(e => e.MemName)
                     .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.MobileNum)
+                    .HasMaxLength(12)
                     .IsUnicode(false)
                     .HasDefaultValueSql("('')");
 

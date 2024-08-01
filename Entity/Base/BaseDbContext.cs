@@ -19,14 +19,15 @@ namespace Entity.Base
         {
 
         }
-        public virtual DbSet<Entity.Base.BaseMemPosition> MemPositions { get; set; } = null!;
+        public virtual DbSet<BaseMemPosition> MemPositions { get; set; } = null!;
         public virtual DbSet<BaseMemInfo> MemInfos { get; set; } = null!;
         public virtual DbSet<BaseMemPosJobLocation> BaseMemPosJobLocation { get; set; } = null!;
         public virtual DbSet<BaseMemPosJobFunction> BaseMemPosJobFunctions { get; set; } = null!;
+        public virtual DbSet<BaseNewsInfoEntity> BaseNewsInfos { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Entity.Base.BaseMemPosition>(entity =>
+            modelBuilder.Entity<BaseMemPosition>(entity =>
             {
                 entity.HasKey(e => e.PosId);
 
@@ -167,7 +168,7 @@ namespace Entity.Base
                     .HasDefaultValueSql("('')");
             });
            
-            modelBuilder.Entity<Entity.Base.BaseMemInfo>(entity =>
+            modelBuilder.Entity<BaseMemInfo>(entity =>
             {
                 entity.HasKey(e => e.MemId);
 
@@ -327,6 +328,50 @@ namespace Entity.Base
                 entity.Property(e => e.JobFunctionSmall).HasColumnName("JobFunction_small");
 
                 entity.Property(e => e.PosId).HasColumnName("PosID");
+            });
+            modelBuilder.Entity<BaseNewsInfoEntity>(entity =>
+            {
+                entity.HasKey(e => e.NewsId);
+
+                entity.ToTable("News_Info");
+
+                entity.Property(e => e.NewsId).HasColumnName("NewsID");
+
+                entity.Property(e => e.ArticleType)
+                    .HasMaxLength(200)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.ContentText)
+                    .HasColumnType("text")
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.EditDate)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ImagePath)
+                    .HasMaxLength(250)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Introduction)
+                    .HasMaxLength(300)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.Title)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.UpdateDate)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.HitCount).HasColumnName("HitCount");
+                entity.Property(e => e.Matk).HasColumnName("Matk");
+                entity.Property(e => e.UserId).HasColumnName("UserID");
             });
         }
     }

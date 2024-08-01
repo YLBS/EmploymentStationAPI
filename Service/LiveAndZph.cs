@@ -25,9 +25,7 @@ namespace Service
         public async Task<(List<OutMngLiveDto> liveDtos,int Count)> GetOutMngLivesList(BaseFilterModels baseFilter)
         {
             var list = await _goodjobdb.Set<MngLive>()
-                .Where(m => m.Esid == baseFilter.Id && string.IsNullOrEmpty(baseFilter.Name)
-                    ? true
-                    : m.Title.Contains(baseFilter.Name)).Select(o => new OutMngLiveDto
+                .Where(m => m.Esid == baseFilter.Id && string.IsNullOrEmpty(baseFilter.Name)? true : m.Title.Contains(baseFilter.Name)).Select(o => new OutMngLiveDto
                     {
                         Id = o.Id,
                         Title = o.Title,
