@@ -1,4 +1,5 @@
-﻿using Iservice;
+﻿using Entity.Goodjob;
+using Iservice;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +8,7 @@ using Models;
 namespace EmploymentStationAPI.Controllers
 {
     /// <summary>
-    /// 资讯文章的增改查
+    /// 资讯文章的CRUD
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
@@ -83,6 +84,21 @@ namespace EmploymentStationAPI.Controllers
                 code = 200,
                 data = result
             });
+        }
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> DelBaseNewsInfo(int id)
+        {
+            var result = await _news.DelBaseNewsInfo(id);
+            if(result.Result)
+            {
+                return Ok(new { code = 200, data = result.Message });
+            }
+            return Ok(new { code = 400, data = result.Message });
         }
     }
 }

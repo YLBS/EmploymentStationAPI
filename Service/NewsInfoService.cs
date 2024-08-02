@@ -41,6 +41,7 @@ namespace Service
             return resultModel;
         }
 
+
         public async Task<OutBaseNewsInfoDto> GetBaseNewsInfo(int id)
         {
             var data= await _basedb.BaseNewsInfos.Where(n=>n.NewsId==id).FirstOrDefaultAsync();
@@ -55,6 +56,7 @@ namespace Service
                 .CountAsync();
             var data = await _basedb.BaseNewsInfos
                 .Where(n => string.IsNullOrEmpty(baseFilter.Name) ? true : n.Title.Contains(baseFilter.Name))
+                .OrderByDescending(n=>n.UpdateDate)
                 .Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToListAsync();
             var dt = _mapper.Map<List<OutBaseNewsInfoDto>>(data);
             return (dt,count);
@@ -89,5 +91,30 @@ namespace Service
             resultModel.Message = "没有找到该文章，无法修改";
             return resultModel;
         }
+
+
+        public async Task<ResultModel> DelBaseNewsInfo(int id)
+        {
+            ResultModel resultModel = new ResultModel();
+            var data = await _basedb.BaseNewsInfos.Where(n => n.NewsId == id).FirstOrDefaultAsync();
+
+            if (data == null)
+            {
+                resultModel.Result = false;
+                resultModel.Message = "删除失败，没有找到文章";
+                return resultModel;
+            }
+            _basedb.Remove(data);
+            if (await _basedb.SaveChangesAsync() > 0)
+            {
+                resultModel.Result = true;
+                resultModel.Message = "删除成功";
+                return resultModel;
+            }
+            resultModel.Result = false;
+            resultModel.Message = "删除失败";
+            return resultModel;
+        }
+
     }
 }

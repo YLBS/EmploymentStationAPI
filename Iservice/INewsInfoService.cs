@@ -16,5 +16,7 @@ namespace Iservice
         public Task<OutBaseNewsInfoDto> GetBaseNewsInfo(int id);
         
         public Task<ResultModel> UpBaseNewsInfo(OutBaseNewsInfoDto infoDto);
+
+        public Task<ResultModel> DelBaseNewsInfo(int id);
     }
 }
