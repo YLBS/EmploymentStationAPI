@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Entity.Sitedata
 {
-    public partial class ZhaoPinHui
+    public partial class ZhaoPinHuiEntity
     {
         public int Pid { get; set; }
         public string Title { get; set; } = null!;

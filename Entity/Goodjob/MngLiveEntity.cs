@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Entity.Goodjob
 {
-    public partial class MngLive
+    public partial class MngLiveEntity
     {
         public int Id { get; set; }
         public string Title { get; set; } = null!;

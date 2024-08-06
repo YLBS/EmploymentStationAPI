@@ -148,7 +148,7 @@ namespace Entity.Goodjob
         public virtual DbSet<MngEmployee> MngEmployees { get; set; } = null!;
         public virtual DbSet<MngHtmlLabel> MngHtmlLabels { get; set; } = null!;
         public virtual DbSet<MngHtmlTemplate> MngHtmlTemplates { get; set; } = null!;
-        public virtual DbSet<MngLive> MngLives { get; set; } = null!;
+        public virtual DbSet<MngLiveEntity> MngLives { get; set; } = null!;
         public virtual DbSet<MngLiveComment> MngLiveComments { get; set; } = null!;
         public virtual DbSet<MngLiveCommentBlack> MngLiveCommentBlacks { get; set; } = null!;
         public virtual DbSet<MngLiveFabulou> MngLiveFabulous { get; set; } = null!;
@@ -4496,7 +4496,7 @@ namespace Entity.Goodjob
                     .IsUnicode(false);
             });
 
-            modelBuilder.Entity<MngLive>(entity =>
+            modelBuilder.Entity<MngLiveEntity>(entity =>
             {
                 entity.ToTable("Mng_Live");
 

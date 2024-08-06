@@ -70,7 +70,7 @@ namespace Entity.Sitedata
         public virtual DbSet<TopicNews> TopicNews { get; set; } = null!;
         public virtual DbSet<WapArticle> WapArticles { get; set; } = null!;
         public virtual DbSet<WapArticlesB> WapArticlesBs { get; set; } = null!;
-        public virtual DbSet<ZhaoPinHui> ZhaoPinHuis { get; set; } = null!;
+        public virtual DbSet<ZhaoPinHuiEntity> ZhaoPinHuis { get; set; } = null!;
         public virtual DbSet<ZhaoPinHuiAdminManage> ZhaoPinHuiAdminManages { get; set; } = null!;
         public virtual DbSet<ZhaoPinHuiBack> ZhaoPinHuiBacks { get; set; } = null!;
         public virtual DbSet<ZhaoPinHuiBooth> ZhaoPinHuiBooths { get; set; } = null!;
@@ -2037,7 +2037,7 @@ namespace Entity.Sitedata
                 entity.Property(e => e.TownId).HasColumnName("TownID");
             });
 
-            modelBuilder.Entity<ZhaoPinHui>(entity =>
+            modelBuilder.Entity<ZhaoPinHuiEntity>(entity =>
             {
                 entity.HasKey(e => e.Pid)
                     .HasName("PK_ZhaoPinHui_back");
