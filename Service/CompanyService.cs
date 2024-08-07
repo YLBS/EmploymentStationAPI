@@ -1,23 +1,17 @@
-﻿using Component.Dictionary;
+﻿using AutoMapper;
+using Component.Dictionary;
 using Entity.Base;
 using Entity.Goodjob;
-using Entity.Goodjob_Other;
 using Entity.Sitedata;
-using Goodjob.Common;
 using Iservice;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
 using Models;
-using ServiceStack;
+using ServiceStack.Script;
+using System.Collections.Generic;
 using System.Data;
-using System.Dynamic;
-using System.Net;
-using System.Numerics;
-using System.Reflection.Emit;
-using System.Text.RegularExpressions;
-using BaseMemInfo = Entity.Base.BaseMemInfo;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Service
 {
@@ -27,13 +21,15 @@ namespace Service
         private readonly GoodjobContext _goodjobdb;
         private readonly sitedataContext _sitedatadb;
         private readonly ILogger<CompanyService> _logger;
+        private readonly IMapper _mapper;
 
-        public CompanyService(BaseDbContext dbContext, GoodjobContext dbContext1, sitedataContext sitedata, ILogger<CompanyService> logger)
+        public CompanyService(BaseDbContext dbContext, GoodjobContext dbContext1, sitedataContext sitedata, ILogger<CompanyService> logger, IMapper mapper)
         {
             _basedb = dbContext;
             _goodjobdb = dbContext1;
             _sitedatadb = sitedata;
             _logger = logger;
+            _mapper = mapper;
         }
         public async Task<(List<OutMemInfoDto>, int Count)> GetOutMemInfoAsync(BaseFilterModels baseFilter, int esId, string beginDate, string endDate)
         {
@@ -152,7 +148,7 @@ namespace Service
         }
         public async Task<List<OutMemPositionDto>> GetList(int memId)
         {
-            var list = await _goodjobdb.Set<Entity.Goodjob.MemPosition>().Where(m => m.MemId == memId).Select(o =>
+            var list = await _goodjobdb.Set<MemPosition>().Where(m => m.MemId == memId).Select(o =>
                 new OutMemPositionDto
                 {
                     MemId = o.MemId,
@@ -168,7 +164,11 @@ namespace Service
 
         public async Task<bool> AddRegisterUnemployment(InputRegisterUnemploymentDto dto, string tenantId, int loginId)
         {
-            int ii = 0;
+            int ii;
+
+            //bool tf= DicSalaryNew1.AreObjectsEqual(myResume, entity);
+            
+            //await Task.Delay(100);
             using (var dbContextTransaction = await _goodjobdb.Database.BeginTransactionAsync())
             {
                 try
@@ -183,7 +183,7 @@ namespace Service
                     _goodjobdb.Database.ExecuteSqlRaw("EXEC Sys_GetMaxID @TableName, @MaxID OUTPUT",
                         new SqlParameter("@TableName", "My_Users"),
                         parameter);
-                    
+
                     int myUserId = (int)parameter.Value;
                     //录入来源
                     int registerFrom = RegisterFrom.Dictionarys[tenantId];
@@ -200,6 +200,15 @@ namespace Service
                         RegisterFrom = registerFrom,
                         BelongType = belongType,
                     };
+                    var myResume = _mapper.Map<MyResume>(dto);
+                    myResume.PerName = dto.UserName;
+                    myResume.JobSeeking = dto.ResumeTitle;
+                    myResume.MobileNum = dto.PhoneNum;
+                    myResume.MyUserId = 123;
+                    myResume.CheckFlag = 1;//审核标志1=待审核，2=审核通过，3=审核不通过，4=更新后待复审 
+                    myResume.WorkWrite = 1;
+                    myResume.EduWrite = 1;
+                    /*
                     var myResume = new MyResume()
                     {
                         MyUserId = myUserId,
@@ -230,6 +239,7 @@ namespace Service
                         WorkWrite = 1,
                         EduWrite = 1
                     };
+                    */
                     //工作地区 [My_JobLocation]
                     var myJobLocation = new MyJobLocation()
                     {
@@ -257,12 +267,12 @@ namespace Service
                         EduText = dto.EduText,
                         WorkText = dto.WorkText,
                     };
-                    //登记便签,登记记录
+                    //登记標簽,登记记录
                     var registerSign = new RegisterSign
                     {
-                        MyUserId = myUserId, 
+                        MyUserId = myUserId,
                         Type = dto.RegisterType,
-                        Esid= dto.EsId,
+                        Esid = dto.EsId,
                         CreateTime = DateTime.Now,
                         BelongType = belongType,
                     };
@@ -292,18 +302,18 @@ namespace Service
 
                     #region insert into Goodjob_Query.dbo.MyResume_Query
                     var parms = new SqlParameter[]{
-                        new SqlParameter() { ParameterName = "@MyUserID", SqlDbType =  SqlDbType.Int, Size = 100, Value = myUserId }, 
+                        new SqlParameter() { ParameterName = "@MyUserID", SqlDbType =  SqlDbType.Int, Size = 100, Value = myUserId },
                         new SqlParameter() {  ParameterName = "@PerName", SqlDbType =  SqlDbType.VarChar, Size = 100, Value = dto.UserName },
                         new SqlParameter() { ParameterName = "@Sex", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.Sex },
-                        new SqlParameter() { ParameterName = "@Birthday", SqlDbType =  SqlDbType.SmallDateTime, Size = 100, Value = dto.Birthday }, 
+                        new SqlParameter() { ParameterName = "@Birthday", SqlDbType =  SqlDbType.SmallDateTime, Size = 100, Value = dto.Birthday },
                         new SqlParameter() { ParameterName = "@Hometown_P", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.HometownP },
                         new SqlParameter() { ParameterName = "@Hometown_C", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.HometownC  },
                         new SqlParameter() { ParameterName = "@Location_P",  SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.LocationP },
                         new SqlParameter() { ParameterName = "@Location_C", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.LocationC },
                         new SqlParameter() { ParameterName = "@DegreeID", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.DegreeId },
-                        new SqlParameter() { ParameterName = "@WorkedYear", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.WorkedYear }, 
-                        
-                        new SqlParameter() { ParameterName = "@LastPosName", SqlDbType =  SqlDbType.VarChar, Size = 100, Value = dto.LastPosName}, 
+                        new SqlParameter() { ParameterName = "@WorkedYear", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.WorkedYear },
+
+                        new SqlParameter() { ParameterName = "@LastPosName", SqlDbType =  SqlDbType.VarChar, Size = 100, Value = dto.LastPosName},
                         new SqlParameter() { ParameterName = "@ResumeStatus", SqlDbType =  SqlDbType.Int, Size = 100, Value = 1 },
                         new SqlParameter() { ParameterName = "@BelongType", SqlDbType =  SqlDbType.Int, Size = 100, Value = belongType },
                     };
@@ -312,9 +322,9 @@ namespace Service
                     #endregion
 
 
-                  ii = await _goodjobdb.SaveChangesAsync();
+                    ii = await _goodjobdb.SaveChangesAsync();
 
-                    await dbContextTransaction.CommitAsync();
+                    //await dbContextTransaction.CommitAsync();
                 }
                 catch (Exception e)
                 {
@@ -961,5 +971,6 @@ namespace Service
 
             return (list.Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToList(), count);
         }
+        
     }
 }

@@ -46,6 +46,7 @@ namespace Component
                     CreateMap(pair.Item1, pair.Item2);
                 }
             }
+            CreateMap<InputRegisterUnemploymentDto, Entity.Goodjob.MyResume>();
         }
 
         private static List<Tuple<Type, Type>> GetMatchingType(Type[] types)

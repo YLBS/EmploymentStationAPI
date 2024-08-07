@@ -28,7 +28,7 @@ namespace EmploymentStationAPI.ExceptionFilter
             {
                 StatusCode = problemDetails.Status
             };
-            var logPath = Path.Combine(AppContext.BaseDirectory, "logs.txt");
+            //var logPath = Path.Combine(AppContext.BaseDirectory, "logs.txt");
             //logger.LogError("全局异常记录到Nlog日志==>" + context.Exception.Message);
             // 标记异常已经处理，以避免后续的过滤器处理
             context.ExceptionHandled = true;

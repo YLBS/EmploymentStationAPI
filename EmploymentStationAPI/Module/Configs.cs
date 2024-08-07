@@ -64,6 +64,7 @@
             {"1","dagang"},
             {"2","nansha"},
             {"4","huangge"},
+            {"5","nancun"},
         };
         
     }

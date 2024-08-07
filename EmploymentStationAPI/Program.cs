@@ -116,7 +116,6 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 
-
 #region JWT鉴权授权
 
 builder.Services.Configure<JWTTokenOptions>(builder.Configuration.GetSection("JWTTokenOptions"));
@@ -175,8 +174,8 @@ builder.Services.AddSingleton(mapper);
 builder.Services.AddHttpContextAccessor();
 
 // 获取当前机器的IP地址
-var hostName = Dns.GetHostName();
-var ip = Dns.GetHostEntry(hostName).AddressList[0];
+//var hostName = Dns.GetHostName();
+//var ip = Dns.GetHostEntry(hostName).AddressList[0];
 
 //判断是不是开发模式
 var env = builder.Environment;
@@ -312,7 +311,6 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
     c.DocumentTitle = "My API";
     c.DocExpansion(DocExpansion.None);
-    //c.RoutePrefix = string.Empty;
 });
 
 app.UseCors("MyCorsPolicy");

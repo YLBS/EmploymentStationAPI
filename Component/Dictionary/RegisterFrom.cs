@@ -13,21 +13,26 @@ namespace Component.Dictionary
         /// </summary>
         public static IDictionary<string, int> Dictionarys = new Dictionary<string, int>
         {
-            {"dg",15},
-            {"hg",16},
-            {"ns",17},
-            {"1",15},
-            {"4",16},
-            {"2",17},
+            //弃用
+            {"dg",24},
+            {"hg",23},
+            {"ns",25},
+            {"nc",26},
+            //现用
+            {"1",24},//大岗
+            {"4",23},//黄阁
+            {"2",25},//南沙
+            {"5",26},//南村
         };
         /// <summary>
         /// 简历属性
         /// </summary>
         public static IDictionary<string, int> Dictionarys1 = new Dictionary<string, int>
         {
-            {"1",1},
-            {"4",4},
-            {"2",2},
+            {"1",1},//大岗
+            {"4",4},//黄阁
+            {"2",2},//南沙
+            {"5",5},//南村
         };
     }
 }
