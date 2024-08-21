@@ -126,6 +126,12 @@ namespace Entity.Base
                     .IsUnicode(false)
                     .HasDefaultValueSql("('')");
 
+                entity.Property(e => e.PosLabel)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')")
+                    .HasComment("岗位标签，来源于表Goodjob.dbo.Mem_PosLabel");
+
                 entity.Property(e => e.PosName)
                     .HasMaxLength(100)
                     .IsUnicode(false)

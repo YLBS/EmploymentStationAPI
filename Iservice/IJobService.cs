@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Entity.Goodjob;
 
 namespace Iservice
 {
@@ -24,12 +25,14 @@ namespace Iservice
         /// <param name="esId"></param>
         /// <returns></returns>
         Task<OutPositionDto> GetMemPositionInfo(int posId, int esId);
+
         /// <summary>
         /// 修改职位
         /// </summary>
         /// <param name="dto"></param>
         /// <returns></returns>
         Task<ResultModel> UpMemPosition(UpPositonDto dto);
+
         /// <summary>
         /// 新增职位
         /// </summary>
@@ -38,5 +41,6 @@ namespace Iservice
         Task<ResultModel> AddMemPosition(InputPositionDto dto);
 
         Task<ResultModel> UpPositionSate(int esId, int memId, int[] posIds, int sate);
+
     }
 }

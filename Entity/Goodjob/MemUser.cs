@@ -53,5 +53,6 @@ namespace Entity.Goodjob
         /// 最大直聊点
         /// </summary>
         public int MaxChatNum { get; set; }
+        public int TotalCount { get; set; }
     }
 }

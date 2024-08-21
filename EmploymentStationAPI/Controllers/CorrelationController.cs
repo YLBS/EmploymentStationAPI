@@ -10,7 +10,6 @@ namespace EmploymentStationAPI.Controllers
     /// <summary>
     /// 提供相关数据
     /// </summary>
-    [Authorize]
     [Route("api/[controller]/[action]")]
     public class CorrelationController : ControllerBase
     {
@@ -138,7 +137,7 @@ namespace EmploymentStationAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> GeWelfaDict()
+        public IActionResult GeWelfaDict()
         {
             List<OutDicModels> outDics = new List<OutDicModels>();
             var welfs = Goodjob.Common.Dictionary.ArraryWelfa.WelfaDict;
@@ -155,6 +154,16 @@ namespace EmploymentStationAPI.Controllers
             outDic.Name = "大小周";
             outDics.Add(outDic);
             return Ok(new { Code = 200, Data = outDics });
+        }
+        /// <summary>
+        /// 获取岗位标签
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> GetPosLable()
+        {
+            var dt = await _outDicService.GetPosLable();
+            return Ok(new { Code = 200, Data = dt });
         }
     }
 }

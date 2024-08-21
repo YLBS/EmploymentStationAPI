@@ -13,5 +13,6 @@ namespace Entity.Goodjob
         public DateTime SendDateTime { get; set; }
         public string Result { get; set; } = null!;
         public int SendType { get; set; }
+        public DateTime? ResultDateTime { get; set; }
     }
 }

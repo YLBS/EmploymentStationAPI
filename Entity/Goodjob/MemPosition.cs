@@ -96,5 +96,9 @@ namespace Entity.Goodjob
         /// 默认12薪
         /// </summary>
         public int SalaryMonth { get; set; }
+        /// <summary>
+        /// 岗位标签，来源于表Mem_PosLabel
+        /// </summary>
+        public string PosLabel { get; set; } = null!;
     }
 }

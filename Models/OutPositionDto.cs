@@ -143,7 +143,22 @@ namespace Models
                     s = s.Where(o => !string.IsNullOrEmpty(o)).ToArray();
                     return Array.ConvertAll(s, int.Parse);
                 }
-                return null;
+                return new int[] { };
+            }
+        }
+        public string PosLableStr { get; set; }
+
+        public int[] PosLable
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(PosLableStr))
+                {
+                    string[] s = PosLableStr.Split(',');
+                    s = s.Where(o => !string.IsNullOrEmpty(o)).ToArray();
+                    return Array.ConvertAll(s, int.Parse);
+                }
+                return new int[]{};
             }
         }
     }

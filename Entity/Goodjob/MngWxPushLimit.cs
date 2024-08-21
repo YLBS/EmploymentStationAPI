@@ -12,5 +12,8 @@ namespace Entity.Goodjob
         public string PosKeyWored { get; set; } = null!;
         public string RegionCid { get; set; } = null!;
         public int DayCount { get; set; }
+        public int EplDayCount { get; set; }
+        public bool UseKeyWordFilter { get; set; }
+        public int EplDayMinute { get; set; }
     }
 }

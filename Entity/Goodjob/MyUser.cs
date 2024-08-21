@@ -67,11 +67,12 @@ namespace Entity.Goodjob
         public bool IsAuEmail { get; set; }
         public bool IsRefresh { get; set; }
         /// <summary>
-        /// 0：PC 1：触摸版 2：安卓 3：苹果 5：小程序 7百度简历 8百度小程序 9今日头条 12 支付宝小程序 14 番禺小程序 15南沙小程序 20招聘会
+        /// 0：PC 1：触摸版 2：安卓 3：苹果 5：小程序 7百度简历 8百度小程序 9今日头条 12 支付宝小程序 14 番禺小程序 15南沙小程序 20招聘会,
+        /// 23黄阁就业驿站，24大岗就业驿站，25南沙就业驿站，26南村就业驿站
         /// </summary>
         public int RegisterFrom { get; set; }
         /// <summary>
-        /// 简历所属 0为俊才 1为大岗 2为南沙 3为百度 4黄阁
+        /// 简历所属 0为俊才 1为大岗 2为南沙 3为百度 4黄阁 5南村
         /// </summary>
         public int BelongType { get; set; }
         public bool Isvideo { get; set; }

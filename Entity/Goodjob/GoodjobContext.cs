@@ -33,12 +33,15 @@ namespace Entity.Goodjob
         public virtual DbSet<HtrReward> HtrRewards { get; set; } = null!;
         public virtual DbSet<ImAutMassage> ImAutMassages { get; set; } = null!;
         public virtual DbSet<ImMyAutMassage> ImMyAutMassages { get; set; } = null!;
+        public virtual DbSet<InterviewPlaybackAddress> InterviewPlaybackAddresses { get; set; } = null!;
         public virtual DbSet<IpBlack> IpBlacks { get; set; } = null!;
         public virtual DbSet<IpBlackRecord> IpBlackRecords { get; set; } = null!;
         public virtual DbSet<IpLogInBlocked> IpLogInBlockeds { get; set; } = null!;
+        public virtual DbSet<JyRelevanceDb> JyRelevanceDbs { get; set; } = null!;
         public virtual DbSet<KeyWordSimilarity> KeyWordSimilarities { get; set; } = null!;
         public virtual DbSet<LevelDictionary> LevelDictionaries { get; set; } = null!;
         public virtual DbSet<MemAdvantage> MemAdvantages { get; set; } = null!;
+        public virtual DbSet<MemAwardTraceRecord> MemAwardTraceRecords { get; set; } = null!;
         public virtual DbSet<MemBackPassword> MemBackPasswords { get; set; } = null!;
         public virtual DbSet<MemBdPhoneRecord> MemBdPhoneRecords { get; set; } = null!;
         public virtual DbSet<MemBlack> MemBlacks { get; set; } = null!;
@@ -96,6 +99,7 @@ namespace Entity.Goodjob
         public virtual DbSet<MemPosJobFunction1> MemPosJobFunctions1 { get; set; } = null!;
         public virtual DbSet<MemPosJobFunctionPt> MemPosJobFunctionPts { get; set; } = null!;
         public virtual DbSet<MemPosJobLocation> MemPosJobLocations { get; set; } = null!;
+        public virtual DbSet<MemPosLabel> MemPosLabels { get; set; } = null!;
         public virtual DbSet<MemPosNoRefresh> MemPosNoRefreshes { get; set; } = null!;
         public virtual DbSet<MemPosUpdateLog> MemPosUpdateLogs { get; set; } = null!;
         public virtual DbSet<MemPosition> MemPositions { get; set; } = null!;
@@ -121,9 +125,11 @@ namespace Entity.Goodjob
         public virtual DbSet<MemServiceConsultingRecord> MemServiceConsultingRecords { get; set; } = null!;
         public virtual DbSet<MemServiceOrder> MemServiceOrders { get; set; } = null!;
         public virtual DbSet<MemSetResumeTag> MemSetResumeTags { get; set; } = null!;
+        public virtual DbSet<MemSignRecord> MemSignRecords { get; set; } = null!;
         public virtual DbSet<MemSm> MemSms { get; set; } = null!;
         public virtual DbSet<MemSmsRecord> MemSmsRecords { get; set; } = null!;
         public virtual DbSet<MemSmsforResume> MemSmsforResumes { get; set; } = null!;
+        public virtual DbSet<MemSmsposRecord> MemSmsposRecords { get; set; } = null!;
         public virtual DbSet<MemSoftwareKey> MemSoftwareKeys { get; set; } = null!;
         public virtual DbSet<MemSysNewServiceMassage> MemSysNewServiceMassages { get; set; } = null!;
         public virtual DbSet<MemUser> MemUsers { get; set; } = null!;
@@ -148,9 +154,11 @@ namespace Entity.Goodjob
         public virtual DbSet<MngEmployee> MngEmployees { get; set; } = null!;
         public virtual DbSet<MngHtmlLabel> MngHtmlLabels { get; set; } = null!;
         public virtual DbSet<MngHtmlTemplate> MngHtmlTemplates { get; set; } = null!;
-        public virtual DbSet<MngLiveEntity> MngLives { get; set; } = null!;
+        public virtual DbSet<MngLinHuoYgRecord> MngLinHuoYgRecords { get; set; } = null!;
+        public virtual DbSet<MngLive> MngLives { get; set; } = null!;
         public virtual DbSet<MngLiveComment> MngLiveComments { get; set; } = null!;
         public virtual DbSet<MngLiveCommentBlack> MngLiveCommentBlacks { get; set; } = null!;
+        public virtual DbSet<MngLiveConfereePo> MngLiveConfereePos { get; set; } = null!;
         public virtual DbSet<MngLiveFabulou> MngLiveFabulous { get; set; } = null!;
         public virtual DbSet<MngLiveLottery> MngLiveLotteries { get; set; } = null!;
         public virtual DbSet<MngLiveMemSign> MngLiveMemSigns { get; set; } = null!;
@@ -162,10 +170,12 @@ namespace Entity.Goodjob
         public virtual DbSet<MngPartnerUser> MngPartnerUsers { get; set; } = null!;
         public virtual DbSet<MngPopSite> MngPopSites { get; set; } = null!;
         public virtual DbSet<MngResumeStatistic> MngResumeStatistics { get; set; } = null!;
+        public virtual DbSet<MngUpMemImconsumptionLog> MngUpMemImconsumptionLogs { get; set; } = null!;
         public virtual DbSet<MngWeekly> MngWeeklies { get; set; } = null!;
         public virtual DbSet<MngWxPusMassage> MngWxPusMassages { get; set; } = null!;
         public virtual DbSet<MngWxPusRecord> MngWxPusRecords { get; set; } = null!;
         public virtual DbSet<MngWxPushLimit> MngWxPushLimits { get; set; } = null!;
+        public virtual DbSet<MngWxPushLimitKeyWord> MngWxPushLimitKeyWords { get; set; } = null!;
         public virtual DbSet<MyActivateInvitation> MyActivateInvitations { get; set; } = null!;
         public virtual DbSet<MyAppRegisterLog> MyAppRegisterLogs { get; set; } = null!;
         public virtual DbSet<MyAuthenId> MyAuthenIds { get; set; } = null!;
@@ -272,6 +282,7 @@ namespace Entity.Goodjob
         public virtual DbSet<PubStraightCast> PubStraightCasts { get; set; } = null!;
         public virtual DbSet<PubUserqdRecord> PubUserqdRecords { get; set; } = null!;
         public virtual DbSet<QdResult> QdResults { get; set; } = null!;
+        public virtual DbSet<QyServeRemindRecord> QyServeRemindRecords { get; set; } = null!;
         public virtual DbSet<RecomMyuserId> RecomMyuserIds { get; set; } = null!;
         public virtual DbSet<RecommendQueue> RecommendQueues { get; set; } = null!;
         public virtual DbSet<RecommendedRecord> RecommendedRecords { get; set; } = null!;
@@ -772,6 +783,23 @@ namespace Entity.Goodjob
                 entity.Property(e => e.Updatetime).HasDefaultValueSql("(getdate())");
             });
 
+            modelBuilder.Entity<InterviewPlaybackAddress>(entity =>
+            {
+                entity.ToTable("InterviewPlaybackAddress");
+
+                entity.Property(e => e.Cname)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreateDate)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.FileList)
+                    .HasMaxLength(1000)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<IpBlack>(entity =>
             {
                 entity.ToTable("IP_Black");
@@ -828,6 +856,21 @@ namespace Entity.Goodjob
 
                 entity.Property(e => e.UserName)
                     .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<JyRelevanceDb>(entity =>
+            {
+                entity.ToTable("JY_Relevance_DB");
+
+                entity.Property(e => e.BelongType).HasColumnName("belongType");
+
+                entity.Property(e => e.DbName)
+                    .HasMaxLength(30)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Name)
+                    .HasMaxLength(30)
                     .IsUnicode(false);
             });
 
@@ -923,6 +966,17 @@ namespace Entity.Goodjob
                 entity.Property(e => e.AdvantageType).HasComment("企业优势关键词类别：1 融资情况；2 公司亮点；3 公司实力");
 
                 entity.Property(e => e.MemId).HasColumnName("MemID");
+            });
+
+            modelBuilder.Entity<MemAwardTraceRecord>(entity =>
+            {
+                entity.ToTable("Mem_Award_TraceRecord");
+
+                entity.Property(e => e.Content).HasMaxLength(1000);
+
+                entity.Property(e => e.CreateTime)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
             });
 
             modelBuilder.Entity<MemBackPassword>(entity =>
@@ -1295,6 +1349,10 @@ namespace Entity.Goodjob
                     .HasColumnType("smalldatetime")
                     .HasColumnName("IMDate")
                     .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ImtotalCount)
+                    .HasColumnName("IMTotalCount")
+                    .HasDefaultValueSql("((20))");
             });
 
             modelBuilder.Entity<MemImage>(entity =>
@@ -2452,6 +2510,13 @@ namespace Entity.Goodjob
                 entity.Property(e => e.PosId).HasColumnName("PosID");
             });
 
+            modelBuilder.Entity<MemPosLabel>(entity =>
+            {
+                entity.ToTable("Mem_PosLabel");
+
+                entity.Property(e => e.Name).HasMaxLength(100);
+            });
+
             modelBuilder.Entity<MemPosNoRefresh>(entity =>
             {
                 entity.HasNoKey();
@@ -2594,6 +2659,12 @@ namespace Entity.Goodjob
                     .HasMaxLength(12)
                     .IsUnicode(false)
                     .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.PosLabel)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("(',')")
+                    .HasComment("岗位标签，来源于表Mem_PosLabel,添加时如 1,2,3 只有一个时需如 1,  以便做模糊查询");
 
                 entity.Property(e => e.PosName)
                     .HasMaxLength(100)
@@ -3606,6 +3677,19 @@ namespace Entity.Goodjob
                 entity.Property(e => e.TagId).HasColumnName("TagID");
             });
 
+            modelBuilder.Entity<MemSignRecord>(entity =>
+            {
+                entity.ToTable("Mem_SignRecord");
+
+                entity.Property(e => e.FirstSignTime)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.LastSignTime)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+            });
+
             modelBuilder.Entity<MemSm>(entity =>
             {
                 entity.ToTable("Mem_SMS");
@@ -3664,6 +3748,29 @@ namespace Entity.Goodjob
                 entity.Property(e => e.MyUserId).HasColumnName("MyUserID");
 
                 entity.Property(e => e.SentCount).HasDefaultValueSql("((1))");
+            });
+
+            modelBuilder.Entity<MemSmsposRecord>(entity =>
+            {
+                entity.ToTable("MemSMSPosRecord");
+
+                entity.Property(e => e.Context)
+                    .HasMaxLength(800)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreateTime)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.IsSucceed).HasDefaultValueSql("((1))");
+
+                entity.Property(e => e.MemName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Phone)
+                    .HasMaxLength(11)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<MemSoftwareKey>(entity =>
@@ -3795,6 +3902,8 @@ namespace Entity.Goodjob
                     .HasMaxLength(20)
                     .IsUnicode(false)
                     .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.TotalCount).HasDefaultValueSql("((5))");
 
                 entity.Property(e => e.UpdateDate)
                     .HasColumnType("smalldatetime")
@@ -4496,7 +4605,24 @@ namespace Entity.Goodjob
                     .IsUnicode(false);
             });
 
-            modelBuilder.Entity<MngLiveEntity>(entity =>
+            modelBuilder.Entity<MngLinHuoYgRecord>(entity =>
+            {
+                entity.ToTable("Mng_LinHuoYG_Record");
+
+                entity.Property(e => e.ContactNumber).HasMaxLength(50);
+
+                entity.Property(e => e.ContactPerson).HasMaxLength(50);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.MemName).HasMaxLength(100);
+
+                entity.Property(e => e.ReferralCode).HasMaxLength(10);
+            });
+
+            modelBuilder.Entity<MngLive>(entity =>
             {
                 entity.ToTable("Mng_Live");
 
@@ -4524,6 +4650,8 @@ namespace Entity.Goodjob
                     .HasComment("直播介绍");
 
                 entity.Property(e => e.EndDateTime).HasColumnType("smalldatetime");
+
+                entity.Property(e => e.Esid).HasColumnName("ESId");
 
                 entity.Property(e => e.FabulousCount).HasDefaultValueSql("((0))");
 
@@ -4578,10 +4706,6 @@ namespace Entity.Goodjob
                     .HasMaxLength(10)
                     .HasDefaultValueSql("('')");
 
-                entity.Property(e => e.Esid)
-                    .HasColumnName("ESId")
-                    .HasComment("驿站ID");
-
                 entity.Property(e => e.Title).HasMaxLength(200);
 
                 entity.Property(e => e.WxDesc).HasMaxLength(500);
@@ -4615,6 +4739,15 @@ namespace Entity.Goodjob
                 entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.BlackTime).HasColumnType("smalldatetime");
+            });
+
+            modelBuilder.Entity<MngLiveConfereePo>(entity =>
+            {
+                entity.ToTable("Mng_Live_ConfereePos");
+
+                entity.Property(e => e.CreateTime)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
             });
 
             modelBuilder.Entity<MngLiveFabulou>(entity =>
@@ -4885,6 +5018,19 @@ namespace Entity.Goodjob
                 entity.Property(e => e.Zph).HasColumnName("ZPH");
             });
 
+            modelBuilder.Entity<MngUpMemImconsumptionLog>(entity =>
+            {
+                entity.ToTable("Mng_Up_Mem_IMConsumption_log");
+
+                entity.Property(e => e.Content)
+                    .HasMaxLength(8000)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreateTime)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+            });
+
             modelBuilder.Entity<MngWeekly>(entity =>
             {
                 entity.ToTable("Mng_Weekly");
@@ -4916,8 +5062,10 @@ namespace Entity.Goodjob
                     .HasDefaultValueSql("('')");
 
                 entity.Property(e => e.Result)
-                    .HasMaxLength(500)
+                    .HasMaxLength(1000)
                     .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.ResultDateTime).HasColumnType("smalldatetime");
 
                 entity.Property(e => e.SendDateTime)
                     .HasColumnType("smalldatetime")
@@ -4949,8 +5097,23 @@ namespace Entity.Goodjob
                     .HasDefaultValueSql("(N'‘’')");
 
                 entity.Property(e => e.RegionCid)
-                    .HasMaxLength(100)
+                    .HasMaxLength(200)
                     .HasColumnName("RegionCId");
+            });
+
+            modelBuilder.Entity<MngWxPushLimitKeyWord>(entity =>
+            {
+                entity.ToTable("Mng_WxPushLimit_KeyWord");
+
+                entity.Property(e => e.KeyWord)
+                    .HasMaxLength(50)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.KeyWords)
+                    .HasMaxLength(200)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.WxPlid).HasColumnName("WxPLId");
             });
 
             modelBuilder.Entity<MyActivateInvitation>(entity =>
@@ -6596,7 +6759,7 @@ namespace Entity.Goodjob
                     .HasColumnName("MyUserID")
                     .HasComment("个人帐号编号");
 
-                entity.Property(e => e.BelongType).HasComment("简历所属 0为俊才 1为大岗 2为南沙 3为百度 4黄阁");
+                entity.Property(e => e.BelongType).HasComment("简历所属 0为俊才 1为大岗 2为南沙 3为百度 4黄阁 5南村");
 
                 entity.Property(e => e.CheckFlag).HasComment("0=未完成注册，1=待审核，2=审核通过，3=审核不通过，4=更新后待复审");
 
@@ -6640,7 +6803,7 @@ namespace Entity.Goodjob
                     .HasDefaultValueSql("(getdate())")
                     .HasComment("账号注册日期");
 
-                entity.Property(e => e.RegisterFrom).HasComment("0：PC 1：触摸版 2：安卓 3：苹果 5：小程序 7百度简历 8百度小程序 9今日头条 12 支付宝小程序 14 番禺小程序 15南沙小程序 20招聘会");
+                entity.Property(e => e.RegisterFrom).HasComment("0：PC 1：触摸版 2：安卓 3：苹果 5：小程序 7百度简历 8百度小程序 9今日头条 12 支付宝小程序 14 番禺小程序 15南沙小程序 20招聘会,\r\n23黄阁就业驿站，24大岗就业驿站，25南沙就业驿站，26南村就业驿站");
 
                 entity.Property(e => e.RequestVideoDate).HasColumnType("smalldatetime");
 
@@ -7875,6 +8038,27 @@ namespace Entity.Goodjob
                 entity.Property(e => e.Result).HasMaxLength(20);
             });
 
+            modelBuilder.Entity<QyServeRemindRecord>(entity =>
+            {
+                entity.ToTable("QyServeRemindRecord");
+
+                entity.Property(e => e.Content)
+                    .HasMaxLength(300)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CreateTime)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.EplName)
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.WeiXinHao)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<RecomMyuserId>(entity =>
             {
                 entity.HasNoKey();
@@ -7957,6 +8141,10 @@ namespace Entity.Goodjob
                 entity.Property(e => e.ContactPerson)
                     .HasMaxLength(50)
                     .IsUnicode(false);
+
+                entity.Property(e => e.CreateTime)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.Esid).HasColumnName("ESId");
 
@@ -8263,7 +8451,7 @@ namespace Entity.Goodjob
                     .ValueGeneratedNever()
                     .HasColumnName("MyUserID");
 
-                entity.Property(e => e.RegisterFrom).HasComment("1.赶集,2.58,3.51job,4.南方/番禺人才网,5.智联招聘,6.门店,7.现场招聘,8.黄阁镇人社局,9.达内教育培训(省人才),10未知 11未知 12 boss,13 智联 14 前程 17南沙驿站  100.其他,");
+                entity.Property(e => e.RegisterFrom).HasComment("1.赶集,2.58,3.51job,4.南方/番禺人才网,5.智联招聘,6.门店,7.现场招聘,8.黄阁镇人社局,9.达内教育培训(省人才),10大岗人才后台管理 11黄阁人才后台管理  12 boss,13 智联 14 前程 17南沙驿站 18南村人才网  100.其他,");
 
                 entity.Property(e => e.RegisterFromDate)
                     .HasColumnType("smalldatetime")

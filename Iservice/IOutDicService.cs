@@ -34,5 +34,11 @@ namespace Iservice
         /// <returns></returns>
         Task<List<OutDicModels>> GetDicSalaryNew();
 
+        /// <summary>
+        /// 获取岗位标签
+        /// </summary>
+        /// <returns></returns>
+        Task<List<OutDicModels>> GetPosLable();
+
     }
 }

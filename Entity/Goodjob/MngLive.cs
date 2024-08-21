@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Entity.Goodjob
 {
-    public partial class MngLiveEntity
+    public partial class MngLive
     {
         public int Id { get; set; }
         public string Title { get; set; } = null!;
@@ -60,9 +60,6 @@ namespace Entity.Goodjob
         public bool LivePlayOpenFlow { get; set; }
         public bool OpenLottery { get; set; }
         public string LotteryTime { get; set; } = null!;
-        /// <summary>
-        /// 驿站ID
-        /// </summary>
         public int Esid { get; set; }
     }
 }

@@ -12,5 +12,6 @@ namespace Entity.Goodjob
         public string Phone { get; set; } = null!;
         public string Address { get; set; } = null!;
         public int Esid { get; set; }
+        public DateTime CreateTime { get; set; }
     }
 }

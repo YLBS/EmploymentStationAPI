@@ -32,6 +32,14 @@ namespace Service
                 welfa = string.Join("|", dto.Welfa);
                 welfa = "|" + welfa + "|";
             }
+
+            string posLabel = "";
+            if (dto.PosLable.Length != 0)
+            {
+                posLabel = string.Join(",", dto.PosLable);
+            }
+
+            posLabel = posLabel + ",";
             if (dto.EsId == 0)
             {
                 var resultModel = new ResultModel();
@@ -124,7 +132,8 @@ namespace Service
                             //SalaryMonth = dto.SalaryMonth,//无
                             JobLocation = cityName,
                             EndValidDate = DateTime.Now.AddMonths(1),
-                            Welfa= welfa
+                            Welfa= welfa,
+                            PosLabel = posLabel
                         };
                         await _basedb.AddAsync(list);
                         ii = await _basedb.SaveChangesAsync();
@@ -248,7 +257,8 @@ namespace Service
                             SalaryMonth = dto.SalaryMonth,
                             JobLocation = cityName,
                             EndValidDate = DateTime.Now.AddMonths(1),
-                            Welfa= welfa
+                            Welfa= welfa,
+                            PosLabel = posLabel
                         };
                         await _goodjobdb.AddAsync(list);
 
@@ -292,6 +302,14 @@ namespace Service
                 welfa = string.Join("|", dto.Welfa);
                 welfa = "|" + welfa + "|";
             }
+
+            string posLabel = "";
+            if (dto.PosLable.Length != 0)
+            {
+                posLabel = string.Join(",", dto.PosLable);
+            }
+
+            posLabel = posLabel + ",";
             var resultModel = new ResultModel();
             if (dto.EsId == 0)
             {
@@ -372,6 +390,7 @@ namespace Service
                         //list.SalaryMonth = dto.SalaryMonth;
                         list.JobLocation = cityName;
                         list.Welfa = welfa;
+                        list.PosLabel = posLabel;
                         ii = await _basedb.SaveChangesAsync();
 
                         await dbContextTransaction.CommitAsync();
@@ -488,6 +507,7 @@ namespace Service
                         list.SalaryMonth = dto.SalaryMonth;
                         list.JobLocation = cityName;
                         list.Welfa = welfa;
+                        list.PosLabel = posLabel;
                         ii = await _goodjobdb.SaveChangesAsync();
 
                         await dbContextTransaction.CommitAsync();
@@ -551,6 +571,7 @@ namespace Service
                         MobileNum = o.MobileNum,
                         PosState = o.PosState,
                         WelfaStr=o.Welfa,
+                        PosLableStr = o.PosLabel,
                     }).ToListAsync();
                 int count = data.Count;
                 foreach (var item in data)
@@ -615,6 +636,7 @@ namespace Service
                     SalaryMonth = o.SalaryMonth,
                     PosState = o.PosState,
                     WelfaStr = o.Welfa,
+                    PosLableStr = o.PosLabel,
                 }).ToListAsync();
                 int count = data.Count;
                 foreach (var item in data)
@@ -681,6 +703,7 @@ namespace Service
                         EmailCodeFlag = o.EmailCodeFlag,
                         MobileNum = o.MobileNum,
                         WelfaStr = o.Welfa,
+                        PosLableStr = o.PosLabel,
                 }).FirstOrDefaultAsync();
                 if (data == null)
                 {
@@ -746,6 +769,7 @@ namespace Service
                     MobileNum = o.MobileNum,
                     SalaryMonth = o.SalaryMonth,
                     WelfaStr = o.Welfa,
+                    PosLableStr = o.PosLabel,
                 }).FirstOrDefaultAsync();
                 if (data == null)
                 {
@@ -808,5 +832,7 @@ namespace Service
             result.Message = $"成功过更新{i}条数据";
             return result;
         }
+
+
     }
 }

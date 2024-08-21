@@ -108,5 +108,9 @@ namespace Models
         /// 福利,int数组
         /// </summary>
         public int[] Welfa { get; set; }
+        /// <summary>
+        /// 岗位标签
+        /// </summary>
+        public int[] PosLable { get; set; }
     }
 }

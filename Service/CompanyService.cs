@@ -347,7 +347,7 @@ namespace Service
         {
             //int belongType = RegisterFrom.Dictionarys1[tenantId];
             var list = await (from a in _goodjobdb.Set<MyUser>()
-                              join b in _goodjobdb.Set<RegisterSign>() on a.MyUserId equals b.MyUserId into tableGroup1
+                              join b in _goodjobdb.Set<RegisterSign>() on a.BelongType equals b.BelongType into tableGroup1
                               from b in tableGroup1.DefaultIfEmpty()
                               join c in _goodjobdb.Set<MyResume>() on a.MyUserId equals c.MyUserId into tableGroup2
                               from c in tableGroup2.DefaultIfEmpty()

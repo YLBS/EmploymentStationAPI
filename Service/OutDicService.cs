@@ -1,24 +1,19 @@
 ﻿using Entity.Goodjob_Other;
 using Iservice;
 using Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using System.Xml.Linq;
-using Microsoft.EntityFrameworkCore.Internal;
-using System.Collections;
+using Entity.Goodjob;
 
 namespace Service
 {
     public class OutDicService : IOutDicService
     {
         private readonly Goodjob_OtherContext _goodjobOtherContext;
-        public OutDicService(Goodjob_OtherContext goodjobOtherContext)
+        private readonly GoodjobContext _goodjobdb;
+        public OutDicService(Goodjob_OtherContext goodjobOtherContext,GoodjobContext goodjobContext)
         {
             _goodjobOtherContext = goodjobOtherContext;
+            _goodjobdb = goodjobContext;
         }
 
         public async Task<List<OutDicModels>> GetDicDegree()
@@ -234,6 +229,15 @@ namespace Service
                     Id = o.Id,
                 }).ToListAsync();
             return getList;
+        }
+        public async Task<List<OutDicModels>> GetPosLable()
+        {
+            var result = _goodjobdb.MemPosLabels.Select(o => new OutDicModels
+            {
+                Id = o.Id,
+                Name = o.Name,
+            }).ToList();
+            return result;
         }
     }
 }

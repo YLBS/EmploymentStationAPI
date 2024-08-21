@@ -58,5 +58,9 @@ namespace Entity.Base
         public string? Welfa { get; set; }
         public string? SalaryRange { get; set; }
         public string? MobileNum { get; set; }
+        /// <summary>
+        /// 岗位标签，来源于表Goodjob.dbo.Mem_PosLabel
+        /// </summary>
+        public string PosLabel { get; set; } = null!;
     }
 }
