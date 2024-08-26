@@ -30,14 +30,15 @@ namespace Models
         /// 出生日期
         /// </summary>
         public DateTime? Birthday { get; set; }
+
         /// <summary>
         /// 证件类型
         /// </summary>
-        public int CardType { get; set; }
+        public int CardType { get; set; } = 0;
         /// <summary>
         /// 证件号码
         /// </summary>
-        public string CardNum { get; set; } = null!;
+        public string CardNum { get; set; } = "";
         /// <summary>
         /// 身高
         /// </summary>
@@ -75,11 +76,11 @@ namespace Models
         /// <summary>
         /// 自我评价
         /// </summary>
-        public string SelfDescription { get; set; } = null!;
+        public string SelfDescription { get; set; } = "";
         /// <summary>
         /// 邮政编码
         /// </summary>
-        public string ZipCode { get; set; } = null!;
+        public string ZipCode { get; set; } = "";
         /// <summary>
         /// 曾工作的年份
         /// </summary>
@@ -105,18 +106,18 @@ namespace Models
         /// <summary>
         /// 教育经历
         /// </summary>
-        public string EduText { get; set; } = null!;
+        public string EduText { get; set; } = "";
         /// <summary>
         /// 工作经历
         /// </summary>
-        public string WorkText { get; set; } = null!;
+        public string WorkText { get; set; } = "";
         /// <summary>
         /// 登记标签，1 失业人员 2退伍军人
         /// </summary>
         public int RegisterType { get; set; }
 
 
-        public string LastPosName { get; set; } = null!;
+        public string LastPosName { get; set; } = "";
         #endregion
 
     }

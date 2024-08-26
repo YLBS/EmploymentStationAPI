@@ -3,14 +3,6 @@
     public static class Configs
     {
         private const string TenantKey = "TenantConnectionString";
-        //private static IConfigurationRoot Configuration { get; set; }
-        //static Configs()
-        //{
-        //    var builder = new ConfigurationBuilder()
-        //        .SetBasePath(Directory.GetCurrentDirectory())
-        //        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-        //    Configuration = builder.Build();
-        //}
         public static IApplicationBuilder UseTenantDatabaseSelector(this IApplicationBuilder app)
         {
             return app.Use(async (context, next) =>

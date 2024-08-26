@@ -30,23 +30,14 @@ namespace EmploymentStationAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStationList()
         {
-            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            var dt = _jwtService.ValidateToken(token);
-            //int loginId;
-            Int32.TryParse(dt[1], out int loginId);
-            var data = await _companyService.GetJiuYeStation(loginId);
-            return Ok(new { Code = 200, Data = data });
-        }
-        /// <summary>
-        /// 解析Token
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet]
-        public IActionResult AnalysisToken()
-        {
-            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            var data = _jwtService.ValidateToken(token);
-            return Ok(new { Code = 200, Data = data });
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            if (userId != null) 
+            {
+                var data = await _companyService.GetJiuYeStation(Convert.ToInt32(userId));
+                return Ok(new { Code = 200, Data = data });
+            }
+            return Ok(new { Code = 401, Data = "data" });
+            
         }
 
         /// <summary>
@@ -80,23 +71,20 @@ namespace EmploymentStationAPI.Controllers
             {
                 return BadRequest(new { Code = 500, Data = "tenantId 为空" });
             }
-            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            var data = _jwtService.ValidateToken(token);
-            //int loginId;
-            Int32.TryParse(data[1], out int loginId);
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            Int32.TryParse(userId, out int loginId);
             if (loginId != 0)
             {
                 var dt = await _companyService.AddRegisterUnemployment(input, tenantId, loginId);
-                if (dt)
+                if (dt.Result)
                 {
                     return Ok(new { Code = 200, Data =new {Msg="新增成功" } });
                 }
 
-                return Ok(new { Code = 400, Data = new { Msg = "新增失败" } });
+                return Ok(new { Code = 400, Data = new { Msg = dt.Message } });
             }
             return BadRequest(new {Code=403,Data= "Token过期" });
         }
-        
        
         /// <summary>
         /// 返回人员信息列表
@@ -149,11 +137,14 @@ namespace EmploymentStationAPI.Controllers
         {
             var dt = await _companyService.UpUnemploymentInfo(unemployment);
 
-            if (dt)
+            if (dt.Result)
             {
                 return Ok(new { Code = 200, Data = "更新成功" });
             }
-            return Ok(new { Code = 400, Data = "更新失败" });
+            if(string.IsNullOrEmpty(dt.Message))
+                return Ok(new { Code = 400, Data = "更新失败" });
+            else
+                return Ok(new { Code = 400, Data = dt.Message });
         }
         /// <summary>
         /// 企业名称模糊查询
@@ -175,16 +166,10 @@ namespace EmploymentStationAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> AddMemInfo([FromBody] InputMemInfoJyDto inputMemInfoJy)
         {
-            //var tenantId = HttpContext.Request.Headers["tenantId"].ToString().Replace("tenantId ", "");
-            //if (string.IsNullOrEmpty(tenantId))
-            //{
-            //    return BadRequest("tenantId 为空");
-            //}
+
             IPAddress clientIp = HttpContext.Request.HttpContext.Connection.RemoteIpAddress;
-            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            var data = _jwtService.ValidateToken(token);
-            //int loginId;
-            Int32.TryParse(data[1], out int loginId);
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            Int32.TryParse(userId, out int loginId);
             // 将IP地址转换为字符串
             string clientIpAddress = clientIp?.ToString();
 

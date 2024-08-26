@@ -4,21 +4,15 @@ using Entity.Goodjob;
 using Iservice;
 using Microsoft.EntityFrameworkCore;
 using Service;
-using System.Net;
 using EmploymentStationAPI.Module;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
-using System.Security.Claims;
-using System.Text;
 using Entity.Goodjob_Other;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using Models;
 using Entity.Sitedata;
-using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using Component;
-using ServiceStack;
+using EmploymentStationAPI.JWT;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,19 +20,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("MyCorsPolicy",
-        builder => builder
+        b => b
             .WithOrigins("http://zj.goodjob.cn", "http://jy.goodjob.cn")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials()
     );
-    //options.AddPolicy("MyCorsPolicy",
-    //    policy => policy
-    //        .AllowAnyOrigin()
-    //        .AllowAnyMethod()
-    //        .AllowAnyHeader()
-    //        .AllowCredentials()
-    //    );
 });
 #region 全局异常过滤器
 
@@ -116,45 +103,13 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 
-#region JWT鉴权授权
+#region JWT验证授权
+//初始化JwtAuthOptions
+builder.Services.Configure<JwtAuthOptions>(builder.Configuration.GetSection("JwtAuth"));
 
-builder.Services.Configure<JWTTokenOptions>(builder.Configuration.GetSection("JWTTokenOptions"));
-
-JWTTokenOptions tokenOptions = new JWTTokenOptions();//初始化
-builder.Configuration.Bind("JWTTokenOptions", tokenOptions);//实现调用
-
-//鉴权
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            //JWT有一些默认的属性，就是给鉴权时就可以筛选了
-            ValidateIssuer = true,//是否验证Issuer
-            ValidateAudience = true,//是否验证Audience
-            ValidateLifetime = false,//是否雅正失效时间
-            ValidateIssuerSigningKey = true,//是否验证SecurityKey
-            ValidAudience = tokenOptions.Audience,
-            ValidIssuer = tokenOptions.Isuser,//Issuer,这两项和前面签发jwt的设置一致
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenOptions.SecurityKey))
-        };
-    });
-//授权
-builder.Services.AddAuthorization(options =>
-{
-    //要求有个角色字段 --- 指定Admin //[Authorize(Roles = "Admin")] //[Authorize(Policy = "AdminPolicy")]
-    options.AddPolicy("AdminPolicy", policyBuilder => policyBuilder.RequireRole("Admin"));
-
-    //要求用户信息里面必须有Role字段,他的信息必须是Admian  //[Authorize(Policy = "AssertionAdminPolicy")]
-    options.AddPolicy("AssertionAdminPolicy", policyBuilder =>
-            policyBuilder.RequireAssertion(context =>
-                context.User.HasClaim(c => c.Type == ClaimTypes.Role)
-                && context.User.Claims.First(c => c.Type.Equals(ClaimTypes.Role)).Value == "Admin")//Claim的Role是User
-    );
-});
-
+builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddJwtAuthorization();
 #endregion
-
 
 
 //builder.Services.AddScoped<DbContext, BaseDbContext>();
@@ -162,7 +117,10 @@ builder.Services.AddAuthorization(options =>
 //builder.Services.AddScoped<DbContext, Goodjob_OtherContext>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IOutDicService, OutDicService>();
+
 builder.Services.AddTransient<IJwtService, JwtService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+
 builder.Services.AddTransient<IJobService, JobService>();
 builder.Services.AddTransient<ILiveAndZph, LiveAndZph>();
 builder.Services.AddTransient<INewsInfoService, NewsInfoService>();
@@ -315,11 +273,11 @@ app.UseSwaggerUI(c =>
 
 app.UseCors("MyCorsPolicy");
 
+app.UseMiddleware<JwtMiddleware>();
 app.UseAuthentication();// 启用认证
 
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseMiddleware<JwtTokenValidationMiddleware>();
 app.Run();

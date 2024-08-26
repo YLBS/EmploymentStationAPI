@@ -149,7 +149,7 @@ namespace Service
                         {
                             sw.WriteLine("Error occurred at: " + DateTime.Now);
                             sw.WriteLine(e.Message);
-                            sw.WriteLine(e.StackTrace);
+                            sw.WriteLine(e.InnerException.Message);
                         }
                         //回滚
                         await dbTransaction.RollbackAsync();
@@ -274,7 +274,7 @@ namespace Service
                         {
                             sw.WriteLine("Error occurred at: " + DateTime.Now);
                             sw.WriteLine(e.Message);
-                            sw.WriteLine(e.StackTrace);
+                            sw.WriteLine(e.InnerException.Message);
                         }
                         await dbContextTransaction.RollbackAsync();
                     }
@@ -379,7 +379,7 @@ namespace Service
                         list.ReqSex = 0;
                         list.ReqDegreeId = dto.ReqDegreeId;
                         list.ReqWorkyear = (byte)dto.ReqWorkyear;
-                        list.ContactPerson = dto.Posdecription;
+                        list.ContactPerson = dto.ContactPerson;
                         list.ContactTelZ = dto.ContactTelZ;
                         list.ContactTel = dto.ContactTel;
                         list.ContactTelE = dto.ContactTelE;
@@ -394,7 +394,7 @@ namespace Service
                         ii = await _basedb.SaveChangesAsync();
 
                         await dbContextTransaction.CommitAsync();
-
+                       //  await dbContextTransaction.RollbackAsync();
                     }
                     catch (Exception e)
                     {
@@ -404,7 +404,7 @@ namespace Service
                         {
                             sw.WriteLine("Error occurred at: " + DateTime.Now);
                             sw.WriteLine(e.Message);
-                            sw.WriteLine(e.StackTrace);
+                            sw.WriteLine(e.InnerException.Message);
                         }
                         await dbContextTransaction.RollbackAsync();
                         ii = 0;
@@ -496,7 +496,7 @@ namespace Service
                         list.ReqSex = 0;
                         list.ReqDegreeId = dto.ReqDegreeId;
                         list.ReqWorkyear = (byte)dto.ReqWorkyear;
-                        list.ContactPerson = dto.Posdecription;
+                        list.ContactPerson = dto.ContactPerson;
                         list.ContactTelZ = dto.ContactTelZ;
                         list.ContactTel = dto.ContactTel;
                         list.ContactTelE = dto.ContactTelE;
@@ -520,7 +520,7 @@ namespace Service
                         {
                             sw.WriteLine("Error occurred at: " + DateTime.Now);
                             sw.WriteLine(e.Message);
-                            sw.WriteLine(e.StackTrace);
+                            sw.WriteLine(e.InnerException.Message);
                         }
                         await dbContextTransaction.RollbackAsync();
                         ii = 0;

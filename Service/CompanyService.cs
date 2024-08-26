@@ -162,13 +162,19 @@ namespace Service
             return list;
         }
 
-        public async Task<bool> AddRegisterUnemployment(InputRegisterUnemploymentDto dto, string tenantId, int loginId)
+        public async Task<ResultModel> AddRegisterUnemployment(InputRegisterUnemploymentDto dto, string tenantId, int loginId)
         {
-            int ii;
+            ResultModel resultModel = new ResultModel();
 
-            //bool tf= DicSalaryNew1.AreObjectsEqual(myResume, entity);
-            
-            //await Task.Delay(100);
+            var list = await _goodjobdb.MyUsers.Where(m => m.PhoneNum == dto.PhoneNum).FirstOrDefaultAsync();
+            if (list != null)
+            {
+                resultModel.Result = false;
+                resultModel.Message = "手机号重复";
+                return resultModel;
+            }
+
+            int ii;
             using (var dbContextTransaction = await _goodjobdb.Database.BeginTransactionAsync())
             {
                 try
@@ -189,11 +195,12 @@ namespace Service
                     int registerFrom = RegisterFrom.Dictionarys[tenantId];
                     //简历属性
                     int belongType = Convert.ToInt32(tenantId);
-
+                    Random random = new Random();
+                    int randomNumber = random.Next(10000, 100000);
                     var user = new MyUser()
                     {
                         MyUserId = myUserId,
-                        UserName = dto.UserName,
+                        UserName = dto.UserName+ randomNumber,
                         Password = "123456",
                         PhoneNum = dto.PhoneNum,
                         Email = dto.Email,
@@ -324,7 +331,7 @@ namespace Service
 
                     ii = await _goodjobdb.SaveChangesAsync();
 
-                    //await dbContextTransaction.CommitAsync();
+                    await dbContextTransaction.CommitAsync();
                 }
                 catch (Exception e)
                 {
@@ -335,12 +342,19 @@ namespace Service
                     {
                         sw.WriteLine("Error occurred at: " + DateTime.Now);
                         sw.WriteLine(e.Message);
-                        sw.WriteLine(e.StackTrace);
+                        sw.WriteLine(e.InnerException.Message);
                     }
                     await dbContextTransaction.RollbackAsync();
                 }
             }
-            return ii > 6;
+
+            if (ii > 6)
+            {
+                resultModel.Result = true;
+                resultModel.Message = "添加成功";
+            }
+
+            return resultModel;
         }
 
         public async Task<(List<OutUnemploymentDto>,int Count)> GetUnemployment(BaseFilterModels baseFilter, int esId)
@@ -558,8 +572,17 @@ namespace Service
             return (getList,count);
         }
 
-        public async Task<bool> UpUnemploymentInfo(UpRegisterUnemploymentDto unemployment)
+        public async Task<ResultModel> UpUnemploymentInfo(UpRegisterUnemploymentDto unemployment)
         {
+            ResultModel resultModel = new ResultModel();
+            var list = await _goodjobdb.MyUsers
+                .Where(m => m.PhoneNum == unemployment.PhoneNum && m.MyUserId != unemployment.MyUserId)
+                .FirstOrDefaultAsync();
+            if (list != null)
+            {
+                resultModel.Result = false;
+                resultModel.Message = "手机号重复";
+            }
             int ii = 0;
             using (var dbContextTransaction = await _goodjobdb.Database.BeginTransactionAsync())
             {
@@ -711,12 +734,18 @@ namespace Service
                     {
                         sw.WriteLine("Error occurred at: " + DateTime.Now);
                         sw.WriteLine(e.Message);
-                        sw.WriteLine(e.StackTrace);
+                        sw.WriteLine(e.InnerException.Message);
                     }
                     await dbContextTransaction.RollbackAsync();
                 }
             }
-            return ii > 0;
+
+            if (ii > 0)
+            {
+                resultModel.Result = true;
+                resultModel.Message = "修改成功";
+            }
+            return resultModel;
         }
 
         public async Task<List<OutUnemploymentInfoDto>> GetOutUnemploymentInfo(int myUserId)
@@ -892,7 +921,7 @@ namespace Service
                     {
                         sw.WriteLine("Error occurred at: " + DateTime.Now);
                         sw.WriteLine(e.Message);
-                        sw.WriteLine(e.StackTrace);
+                        sw.WriteLine(e.InnerException.Message);
                     }
                     await dbContextTransaction.RollbackAsync();
                 }

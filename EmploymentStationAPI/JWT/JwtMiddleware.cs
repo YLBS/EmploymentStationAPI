@@ -1,22 +1,26 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.Extensions.Options;
-namespace EmploymentStationAPI.Module
+using ServiceStack;
+using ServiceStack.Text;
+
+namespace EmploymentStationAPI.JWT
 {
-    public class JwtTokenValidationMiddleware
+    public class JwtMiddleware
     {
         private readonly RequestDelegate _next;
-        private JWTTokenOptions _jwtTokenOptions;
-
-        public JwtTokenValidationMiddleware(RequestDelegate next, IOptions<JWTTokenOptions> options)
+        private readonly JwtAuthOptions _jwtAuthOptions;
+        public JwtMiddleware(RequestDelegate next, Microsoft.Extensions.Options.IOptions<JwtAuthOptions> options)
         {
-            this._jwtTokenOptions = options.Value;
+            _jwtAuthOptions = options.Value;
             _next = next;
         }
-
+        /// <summary>
+        /// 实行验证
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
         {
             if (context.Request.Path.StartsWithSegments("/api/Authentication"))
@@ -58,16 +62,17 @@ namespace EmploymentStationAPI.Module
         private ClaimsPrincipal ValidateToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtTokenOptions.SecurityKey));//Encoding.UTF8.GetBytes("your_secret_key"); // Replace with your actual secret key
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtAuthOptions.SecurityKey));
             var validations = new TokenValidationParameters
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = _jwtTokenOptions.Isuser,
-                ValidAudience = _jwtTokenOptions.Audience,
-                IssuerSigningKey = key
+                ValidIssuer = _jwtAuthOptions.Issuer,
+                ValidAudience = _jwtAuthOptions.Audience,
+                IssuerSigningKey = key,
+                ClockSkew = TimeSpan.Zero,//偏移，默认5分钟！！！
             };
 
             try
@@ -75,14 +80,12 @@ namespace EmploymentStationAPI.Module
                 var principal = tokenHandler.ValidateToken(token, validations, out var validatedToken);
                 return principal;
             }
-            catch (SecurityTokenExpiredException)
+            catch (SecurityTokenExpiredException exception)
             {
-                // Token has expired
                 return null;
             }
-            catch (Exception e)//SecurityTokenInvalidException
+            catch (Exception e)
             {
-                // Token is invalid
                 return null;
             }
         }

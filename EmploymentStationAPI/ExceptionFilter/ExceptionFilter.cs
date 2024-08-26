@@ -22,7 +22,13 @@ namespace EmploymentStationAPI.ExceptionFilter
                 Detail = context.Exception.Message,
                 Instance = context.Exception.StackTrace
             };
-
+            string logPath = "path/logfile.txt";
+            Directory.CreateDirectory(Path.GetDirectoryName(logPath)); // 确保目录存在
+            using (StreamWriter sw = File.AppendText(logPath))
+            {
+                sw.WriteLine("Error occurred at: " + DateTime.Now);
+                sw.WriteLine(context.Exception.Message);
+            }
             // 设置结果
             context.Result = new ObjectResult(problemDetails)
             {

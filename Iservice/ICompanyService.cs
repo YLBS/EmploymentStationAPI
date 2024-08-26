@@ -28,7 +28,7 @@ namespace Iservice
         /// <param name="tenantId"></param>
         /// <param name="loginId"></param>
         /// <returns></returns>
-        Task<bool> AddRegisterUnemployment(InputRegisterUnemploymentDto dto,string tenantId,int loginId);
+        Task<ResultModel> AddRegisterUnemployment(InputRegisterUnemploymentDto dto,string tenantId,int loginId);
         /// <summary>
         /// 获取人员列表
         /// </summary>
@@ -58,7 +58,7 @@ namespace Iservice
         /// </summary>
         /// <param name="unemployment"></param>
         /// <returns></returns>
-        Task<bool> UpUnemploymentInfo(UpRegisterUnemploymentDto unemployment);
+        Task<ResultModel> UpUnemploymentInfo(UpRegisterUnemploymentDto unemployment);
 
         /// <summary>
         /// 添加企业信息

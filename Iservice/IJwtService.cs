@@ -17,17 +17,5 @@ namespace Iservice
         /// <param name="tf"></param>
         /// <returns></returns>
         Task<JwtModels> VerificationLogin(string userName, string psw);
-        /// <summary>
-        /// 生成Token
-        /// </summary>
-        /// <param name="jwtModel"></param>
-        /// <returns></returns>
-        string GetToken(JwtModels jwtModel);
-        /// <summary>
-        /// 解析Token
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        string[] ValidateToken(string token);
     }
 }
