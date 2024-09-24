@@ -35,7 +35,7 @@ namespace EmploymentStationAPI.Controllers
             var jwt = await _jwtService.VerificationLogin(userName, psw);
             if (jwt.Id!=0)
             {
-                var tokens = await _tokenService.IssueTokenAsync(jwt.Id);
+                var tokens = await _tokenService.IssueTokenAsync(jwt);
                 return Ok(new{token=tokens.AccessToken });
             }
             return BadRequest("账号或密码错误");
@@ -50,12 +50,16 @@ namespace EmploymentStationAPI.Controllers
             var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             if (string.IsNullOrEmpty(token))
             {
-                return Ok(new { Code = 401, Msg = "Token已丢失" });
+                return Unauthorized("Token已丢失");
             }
             var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
-            if (userId != null)  //Token未过期，重新生成token返回
+            var title = User.Claims.FirstOrDefault(c => c.Type == "Title")?.Value;
+            if (userId != null && title!=null)  //Token未过期，重新生成token返回
             {
-                var tokens = await _tokenService.IssueTokenAsync(Convert.ToInt32(userId));
+                JwtModels jwt = new JwtModels();
+                jwt.Id= Convert.ToInt32(userId);
+                jwt.Title = title;
+                var tokens = await _tokenService.IssueTokenAsync(jwt);
                 return Ok(new
                 {
                     token = tokens.AccessToken,
@@ -68,12 +72,17 @@ namespace EmploymentStationAPI.Controllers
             {
                 userId = jwtSecurityToken.Claims
                     .FirstOrDefault(s => s.Type == "UserId")?.Value;
+                title= jwtSecurityToken.Claims
+                    .FirstOrDefault(s => s.Type == "Title")?.Value;
                 var i = Convert.ToInt32(jwtSecurityToken.Claims
                     .FirstOrDefault(s => s.Type == "refreshTokenExpires")?.Value);
                 var j = Convert.ToInt32(DateTime.Now.AddDays(1).ToUnixTimeStampSecond().ToString());
                 if (i > j) 
                 {
-                    var tokens = await _tokenService.IssueTokenAsync(Convert.ToInt32(userId));
+                    JwtModels jwt = new JwtModels();
+                    jwt.Id = Convert.ToInt32(userId);
+                    jwt.Title = title;
+                    var tokens = await _tokenService.IssueTokenAsync(jwt);
                     return Ok(new
                     {
                         Code=200,Data=new

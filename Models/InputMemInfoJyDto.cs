@@ -99,5 +99,6 @@ namespace Models
         /// 驿站Id 
         /// </summary>
         public int Esid { get; set; }
+        
     }
 }

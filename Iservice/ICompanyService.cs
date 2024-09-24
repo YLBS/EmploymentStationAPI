@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Entity.Goodjob;
+using Microsoft.AspNetCore.Mvc;
 using Models;
 
 namespace Iservice
@@ -84,5 +85,22 @@ namespace Iservice
         /// </summary>
         /// <returns></returns>
         Task<(List<RecruitmentRegister>, int Count)> GetRecruitmentRegister(BaseFilterModels baseFilter, int esId);
+
+        /// <summary>
+        /// 返回需要修改的数据
+        /// </summary>
+        /// <param name="memId"></param>
+        /// <returns></returns>
+        Task<UpdateMemInfoJyDto> GetData(int memId);
+        /// <summary>
+        /// 修改企业信息
+        /// </summary>
+        /// <returns></returns>
+        Task<ResultModel> Update(UpdateMemInfoJyDto info, string  title);
+        /// <summary>
+        /// 修改账号密码
+        /// </summary>
+        /// <returns></returns>
+        Task<ResultModel> Update(AccountModes info, string title);
     }
 }

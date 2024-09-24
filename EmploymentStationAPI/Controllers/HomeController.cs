@@ -1,27 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Iservice;
 using Models;
-using Goodjob.Common.Dictionary;
-using Microsoft.AspNetCore.Authorization;
-using System.Collections.Generic;
 using System.Net;
+using AutoMapper;
 
 namespace EmploymentStationAPI.Controllers
 {
     /// <summary>
     /// 提供企业相关API
     /// </summary>
-    [Authorize]
     [Route("api/[controller]/[action]")]
     //[ApiController]
     public class HomeController : ControllerBase
     {
         private readonly ICompanyService _companyService;
-        private readonly IJwtService _jwtService;
-        public HomeController(ICompanyService iCompanyService, IOutDicService outDicService, IJwtService jwtService, IJobService jobService)
+        public HomeController(ICompanyService iCompanyService, IMapper mapper)
         {
             _companyService = iCompanyService;
-            _jwtService = jwtService;
         }
         /// <summary>
         /// 返回就业驿站
@@ -36,7 +31,8 @@ namespace EmploymentStationAPI.Controllers
                 var data = await _companyService.GetJiuYeStation(Convert.ToInt32(userId));
                 return Ok(new { Code = 200, Data = data });
             }
-            return Ok(new { Code = 401, Data = "data" });
+
+            return Unauthorized();
             
         }
 
@@ -214,6 +210,64 @@ namespace EmploymentStationAPI.Controllers
             var count = list.Count;
             return Ok(new { Code = 200, Data = new { count, data } });
 
+        }
+
+
+        /// <summary>
+        /// 返回需要修改的企业信息
+        /// </summary>
+        /// <param name="memId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> GetData(int memId)
+        {
+            var s = await _companyService.GetData(memId);
+            if (s == null)
+                return NotFound("企业不存在");
+            return Ok(new { Code = 200, Data = s });
+            ;
+        }
+
+        /// <summary>
+        /// 修改企业信息
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns></returns>
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateInfo([FromForm] UpdateMemInfoJyDto info)
+        {
+            var title = User.Claims.FirstOrDefault(c => c.Type == "Title")?.Value;
+            if (title == null)
+            {
+                return Unauthorized();
+            }
+            var s = await _companyService.Update(info, title);
+            if (s.Result)
+            {
+                return Ok(new { Code = 200, Data = s.Message });
+            }
+            return NotFound("企业不存在");
+        }
+        /// <summary>
+        /// 修改密码
+        /// </summary>
+        /// <param name="modes"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> UpdateAccount([FromForm] AccountModes modes)
+        {
+            var title = User.Claims.FirstOrDefault(c => c.Type == "Title")?.Value;
+            if (title == null)
+            {
+                return Unauthorized();
+            }
+            var s = await _companyService.Update(modes, title);
+            if (s.Result)
+            {
+                return Ok(new { Code = 200, Data = s.Message });
+            }
+            return NotFound("企业不存在");
         }
     }
 }

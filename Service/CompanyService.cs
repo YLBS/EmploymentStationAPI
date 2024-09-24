@@ -2,16 +2,19 @@
 using Component.Dictionary;
 using Entity.Base;
 using Entity.Goodjob;
+using Entity.Goodjob_Other;
 using Entity.Sitedata;
 using Iservice;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Models;
+using ServiceStack;
 using ServiceStack.Script;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.AccessControl;
 
 namespace Service
 {
@@ -20,15 +23,13 @@ namespace Service
         private readonly BaseDbContext _basedb;
         private readonly GoodjobContext _goodjobdb;
         private readonly sitedataContext _sitedatadb;
-        private readonly ILogger<CompanyService> _logger;
         private readonly IMapper _mapper;
 
-        public CompanyService(BaseDbContext dbContext, GoodjobContext dbContext1, sitedataContext sitedata, ILogger<CompanyService> logger, IMapper mapper)
+        public CompanyService(BaseDbContext dbContext, GoodjobContext dbContext1, sitedataContext sitedata, IMapper mapper)
         {
             _basedb = dbContext;
             _goodjobdb = dbContext1;
             _sitedatadb = sitedata;
-            _logger = logger;
             _mapper = mapper;
         }
         public async Task<(List<OutMemInfoDto>, int Count)> GetOutMemInfoAsync(BaseFilterModels baseFilter, int esId, string beginDate, string endDate)
@@ -81,7 +82,7 @@ namespace Service
                 await command.Connection.OpenAsync();
                 using (var reader = await command.ExecuteReaderAsync())
                 {
-                    while (reader.Read())
+                    while (await reader.ReadAsync())
                     {
                         OutMemInfoDto outMem= new OutMemInfoDto();
                         outMem.EsId = Convert.ToInt32(reader["ESId"]);
@@ -97,9 +98,9 @@ namespace Service
                         outMemInfos.Add(outMem);
                     }
 
-                    if (reader.NextResult())
+                    if (await reader.NextResultAsync())
                     {
-                        while (reader.Read())
+                        while (await reader.ReadAsync())
                         {
                             count = Convert.ToInt32(reader[0]);
                         }
@@ -872,7 +873,8 @@ namespace Service
                         parameter);
 
                     int memId = (int)parameter.Value;
-                    //int belongType = RegisterFrom.Dictionarys1[tenantId];
+                    int belongType = await _sitedatadb.JiuYeStations.Where(m => m.Id == inputMemInfoJy.Esid)
+                        .Select(j => j.BelongType).FirstOrDefaultAsync();
                     var memUser = new MemUser()
                     {
                         UserName = inputMemInfoJy.UserName,
@@ -905,7 +907,7 @@ namespace Service
                         AddressD = inputMemInfoJy.AddressD,
                         AddressT = inputMemInfoJy.AddressT,
                         Esid = inputMemInfoJy.Esid,
-                       // BelongType = belongType,
+                        BelongType = belongType,
                     };
                     await _goodjobdb.AddAsync(memUser);
                     await _goodjobdb.AddAsync(memInfoJy);
@@ -1000,6 +1002,78 @@ namespace Service
 
             return (list.Skip((baseFilter.PageIndex - 1) * baseFilter.PageSize).Take(baseFilter.PageSize).ToList(), count);
         }
+
         
+
+        public async Task<UpdateMemInfoJyDto> GetData(int memId)
+        {
+            var list =  await _goodjobdb.MemInfoJies.Where(m => m.MemId == memId).FirstOrDefaultAsync();
+            if (list != null)
+            {
+
+                var entity = _mapper.Map<UpdateMemInfoJyDto>(list);
+                var s = await _goodjobdb.MemUsers.Where(m => m.MemId == memId).FirstAsync();
+                entity.PassWord = Goodjob.Encryption.Encryption.DecryptDES(s.PassWord); 
+                entity.UserName = s.UserName;
+                return entity;
+            }
+            return null;
+        }
+        public async Task<ResultModel> Update(UpdateMemInfoJyDto info, string title)
+        {
+            ResultModel resultModel = new ResultModel();
+            var list = await _goodjobdb.MemInfoJies.Where(m => m.MemId == info.MemId).FirstOrDefaultAsync();
+            if (list == null)
+            {
+
+                resultModel.Result = false;
+                resultModel.Message = "企业不存在";
+                return resultModel;
+            }
+            var properity = list.Properity;
+            _mapper.Map(info, list);
+            list.Properity = properity;
+            await _goodjobdb.SaveChangesAsync();
+            resultModel.Result = true;
+            resultModel.Message = "修改成功";
+            await AddUpLog(title, info.MemId, 1);
+            return resultModel;
+        }
+
+        public async Task<ResultModel> Update(AccountModes info, string title)
+        {
+            ResultModel resultModel = new ResultModel();
+            var list = await  _goodjobdb.MemUsers.Where(m => m.MemId == info.MemId).FirstOrDefaultAsync();
+            if (list == null)
+            {
+                resultModel.Result = false;
+                resultModel.Message = "企业不存在";
+                return resultModel;
+            }
+            list.UserName= info.UserName;
+            list.PassWord = Goodjob.Encryption.Encryption.EncryptDES(info.PassWord);
+            await _goodjobdb.SaveChangesAsync();
+            resultModel.Result = true;
+            resultModel.Message = "修改成功";
+            await AddUpLog(title, info.MemId, 2);
+            return resultModel;
+        }
+        /// <summary>
+        /// 添加修改日志
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="memId"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private async Task AddUpLog(string name, int memId, int type)
+        {
+            UpEnterpriseLog u = new UpEnterpriseLog();
+            u.CreateTime = DateTime.Now;
+            u.Name = name;
+            u.MemId = memId;
+            u.UpType = type;
+            await _goodjobdb.UpEnterpriseLogs.AddAsync(u);
+            await _goodjobdb.SaveChangesAsync();
+        }
     }
 }

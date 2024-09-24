@@ -6,7 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Entity.Base;
+using Entity.Goodjob;
+using Entity.Sitedata;
 using Models;
+using Models.LiveAndZph;
 
 namespace Component
 {
@@ -28,25 +31,44 @@ namespace Component
 
 
             // 获取当前正在运行的应用程序域
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            string assemblyName1 = "Models";
-            string assemblyName2 = "Entity";
+            //Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            //string assemblyName1 = "Models";
+            //string assemblyName2 = "Entity";
 
-            // 遍历程序集，找到名称匹配的程序集
-            Assembly targetAssembly1 = assemblies.FirstOrDefault(asm => asm.FullName.Contains(assemblyName1));
-            Assembly targetAssembly2 = assemblies.FirstOrDefault(asm => asm.FullName.Contains(assemblyName2));
-            if (targetAssembly1 != null && targetAssembly2 != null)
-            {
-                // 获取Models程序集中的所有类型
-                Type[] types1 = targetAssembly1.GetTypes();
-                Type[] types2 = targetAssembly2.GetTypes();
-                var typePairs1 = GetMatchingTypes(types1, types2);
-                foreach (var pair in typePairs1)
-                {
-                    CreateMap(pair.Item1, pair.Item2);
-                }
-            }
-            CreateMap<InputRegisterUnemploymentDto, Entity.Goodjob.MyResume>();
+            //// 遍历程序集，找到名称匹配的程序集
+            //Assembly targetAssembly1 = assemblies.FirstOrDefault(asm => asm.FullName.Contains(assemblyName1));
+            //Assembly targetAssembly2 = assemblies.FirstOrDefault(asm => asm.FullName.Contains(assemblyName2));
+            //if (targetAssembly1 != null && targetAssembly2 != null)
+            //{
+            //    // 获取Models程序集中的所有类型
+            //    Type[] types1 = targetAssembly1.GetTypes();
+            //    Type[] types2 = targetAssembly2.GetTypes();
+            //    var typePairs1 = GetMatchingTypes(types1, types2);
+            //    foreach (var pair in typePairs1)
+            //    {
+            //        CreateMap(pair.Item1, pair.Item2);
+            //    }
+            //}
+
+            //CreateMap<源，目标>;
+
+            //查询
+            CreateMap<MngLive, OutMngLiveDto>();
+            CreateMap<ZhaoPinHuiEntity, OutZhaoPinHuiDto>();
+            CreateMap<MemInfoJy, UpdateMemInfoJyDto>();
+            CreateMap<BaseNewsInfoEntity, OutBaseNewsInfoDto>();
+
+
+            //添加
+            CreateMap<InputBaseNewsInfoDto, BaseNewsInfoEntity>();
+            CreateMap<InputRegisterUnemploymentDto,MyResume>();
+
+            //修改
+            CreateMap<UpdateMemInfoJyDto, MemInfoJy>();
+            CreateMap<OutBaseNewsInfoDto, BaseNewsInfoEntity>();
+
+
+            //修改时，_mapper.Map(dto, 查询回来的目标);
         }
 
         private static List<Tuple<Type, Type>> GetMatchingType(Type[] types)

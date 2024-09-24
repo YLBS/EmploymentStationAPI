@@ -97,7 +97,7 @@ namespace Entity.Goodjob
         /// </summary>
         public int SalaryMonth { get; set; }
         /// <summary>
-        /// 岗位标签，来源于表Mem_PosLabel
+        /// 岗位标签，来源于表Mem_PosLabel,添加时如 1,2,3 只有一个时需如 1,  以便做模糊查询
         /// </summary>
         public string PosLabel { get; set; } = null!;
     }

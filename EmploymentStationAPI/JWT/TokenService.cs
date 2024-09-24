@@ -29,14 +29,15 @@ namespace EmploymentStationAPI.JWT
         /// </summary>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public async Task<Token> IssueTokenAsync(int userId)
+        public async Task<Token> IssueTokenAsync(JwtModels jwtModels)
         {
             var nowTime = DateTime.Now;
             var expiresTime = nowTime.AddMinutes(_jwtAuthOptions.Value.Expires);
             var refreshTokenExpires = nowTime.AddDays(_jwtAuthOptions.Value.RefreshTokenExpires); 
             List<Claim> claims = new List<Claim>
             {
-                new Claim("UserId", userId.ToString()),
+                new Claim("UserId", jwtModels.Id.ToString()),
+                new Claim("Title", jwtModels.Title),
                 new Claim("refreshTokenExpires", refreshTokenExpires.ToUnixTimeStampSecond().ToString()),
             };
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtAuthOptions.Value.SecurityKey));

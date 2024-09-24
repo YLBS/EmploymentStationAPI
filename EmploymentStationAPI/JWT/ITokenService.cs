@@ -12,7 +12,7 @@ namespace EmploymentStationAPI.JWT
         /// 生成token
         /// </summary>
         /// <returns></returns>
-        Task<Token> IssueTokenAsync(int userId);
+        Task<Token> IssueTokenAsync(JwtModels jwt);
         /// <summary>
         /// 读取验证token
         /// </summary>

@@ -305,7 +305,9 @@ namespace Entity.Goodjob
         public virtual DbSet<TemplateType> TemplateTypes { get; set; } = null!;
         public virtual DbSet<TopicMemInfo> TopicMemInfos { get; set; } = null!;
         public virtual DbSet<TouchFeedBack> TouchFeedBacks { get; set; } = null!;
+        public virtual DbSet<UpEnterpriseLog> UpEnterpriseLogs { get; set; } = null!;
         public virtual DbSet<WapLoginLog> WapLoginLogs { get; set; } = null!;
+        public virtual DbSet<WxShareShortLink> WxShareShortLinks { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -3443,15 +3445,11 @@ namespace Entity.Goodjob
 
             modelBuilder.Entity<MemResumePush>(entity =>
             {
-                entity.HasNoKey();
-
                 entity.ToTable("Mem_ResumePush");
 
                 entity.HasComment("简历推送");
 
-                entity.Property(e => e.Id)
-                    .ValueGeneratedOnAdd()
-                    .HasColumnName("ID");
+                entity.Property(e => e.Id).HasColumnName("ID");
 
                 entity.Property(e => e.InputDate).HasColumnType("smalldatetime");
 
@@ -8577,6 +8575,19 @@ namespace Entity.Goodjob
                 entity.Property(e => e.MyUserId).HasColumnName("MyUserID");
             });
 
+            modelBuilder.Entity<UpEnterpriseLog>(entity =>
+            {
+                entity.ToTable("UpEnterpriseLog");
+
+                entity.Property(e => e.CreateTime)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Name)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<WapLoginLog>(entity =>
             {
                 entity.HasKey(e => e.MyuserId);
@@ -8599,6 +8610,15 @@ namespace Entity.Goodjob
                     .HasDefaultValueSql("('')");
 
                 entity.Property(e => e.Sxcount).HasColumnName("sxcount");
+            });
+
+            modelBuilder.Entity<WxShareShortLink>(entity =>
+            {
+                entity.ToTable("WxShareShortLink");
+
+                entity.Property(e => e.ShortLink)
+                    .HasMaxLength(120)
+                    .IsUnicode(false);
             });
 
             OnModelCreatingPartial(modelBuilder);

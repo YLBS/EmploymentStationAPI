@@ -1,4 +1,6 @@
-﻿namespace EmploymentStationAPI.Module
+﻿
+
+namespace EmploymentStationAPI.Module
 {
     public static class Configs
     {

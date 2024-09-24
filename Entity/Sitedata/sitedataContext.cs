@@ -1104,19 +1104,46 @@ namespace Entity.Sitedata
 
                 entity.Property(e => e.AffiliatedUnit).HasMaxLength(100);
 
+                entity.Property(e => e.BelongType).HasComment("驿站归属，1 大岗，2 南沙，4 黄阁");
+
                 entity.Property(e => e.Eaddress)
                     .HasMaxLength(100)
                     .HasColumnName("EAddress");
 
                 entity.Property(e => e.EaddressC).HasColumnName("EAddressC");
 
+                entity.Property(e => e.EaddressCname)
+                    .HasMaxLength(50)
+                    .HasColumnName("EAddressCName")
+                    .HasDefaultValueSql("('')");
+
                 entity.Property(e => e.EaddressD).HasColumnName("EAddressD");
+
+                entity.Property(e => e.EaddressDname)
+                    .HasMaxLength(50)
+                    .HasColumnName("EAddressDName")
+                    .HasDefaultValueSql("('')");
 
                 entity.Property(e => e.EaddressP).HasColumnName("EAddressP");
 
+                entity.Property(e => e.EaddressPname)
+                    .HasMaxLength(50)
+                    .HasColumnName("EAddressPName")
+                    .HasDefaultValueSql("('')");
+
                 entity.Property(e => e.EaddressT).HasColumnName("EAddressT");
 
+                entity.Property(e => e.EaddressTname)
+                    .HasMaxLength(50)
+                    .HasColumnName("EAddressTName")
+                    .HasDefaultValueSql("('')");
+
                 entity.Property(e => e.Introduce).HasMaxLength(500);
+
+                entity.Property(e => e.ServiceQrcode)
+                    .HasMaxLength(300)
+                    .HasColumnName("ServiceQRCode")
+                    .HasDefaultValueSql("('')");
 
                 entity.Property(e => e.Title).HasMaxLength(100);
 
@@ -2098,6 +2125,8 @@ namespace Entity.Sitedata
                     .HasColumnType("smalldatetime")
                     .HasDefaultValueSql("(getdate())");
 
+                entity.Property(e => e.Esid).HasColumnName("ESId");
+
                 entity.Property(e => e.GroupCodePath)
                     .HasMaxLength(100)
                     .IsUnicode(false)
@@ -2242,10 +2271,6 @@ namespace Entity.Sitedata
                     .IsUnicode(false)
                     .HasDefaultValueSql("('')")
                     .HasComment("招聘会二维码群名");
-
-                entity.Property(e => e.Esid)
-                    .HasColumnName("ESId")
-                    .HasComment("驿站ID");
 
                 entity.Property(e => e.ZphType).HasComment("0为正常 1为校园");
             });
@@ -2671,6 +2696,10 @@ namespace Entity.Sitedata
 
                 entity.Property(e => e.ZphAdminId).HasColumnName("ZphAdminID");
 
+                entity.Property(e => e.AffiliatedUnit)
+                    .HasMaxLength(10)
+                    .HasDefaultValueSql("('')");
+
                 entity.Property(e => e.PassWord)
                     .HasMaxLength(150)
                     .IsUnicode(false)
@@ -2691,11 +2720,6 @@ namespace Entity.Sitedata
 
                 entity.Property(e => e.UserName)
                     .HasMaxLength(50)
-                    .IsUnicode(false)
-                    .HasDefaultValueSql("('')");
-
-                entity.Property(e => e.AffiliatedUnit)
-                    .HasMaxLength(10)
                     .IsUnicode(false)
                     .HasDefaultValueSql("('')");
             });
