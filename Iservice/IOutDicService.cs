@@ -39,6 +39,12 @@ namespace Iservice
         /// </summary>
         /// <returns></returns>
         Task<List<OutDicModels>> GetPosLable();
+        /// <summary>
+        /// 获取连接数据库的配置
+        /// </summary>
+        /// <returns></returns>
+        List<OutDicModels> GetDbConnection();
+
 
     }
 }

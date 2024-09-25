@@ -1,65 +1,67 @@
 ﻿
 
+using Iservice;
+using Microsoft.Extensions.Caching.Memory;
+using Models;
+
 namespace EmploymentStationAPI.Module
 {
     public static class Configs
     {
-        private const string TenantKey = "TenantConnectionString";
-        public static IApplicationBuilder UseTenantDatabaseSelector(this IApplicationBuilder app)
+        private const string TenantKey = "TenantConnectionString"; 
+        private static IMemoryCache _cache;
+
+        public static void Initialize(IMemoryCache cache)
         {
-            return app.Use(async (context, next) =>
-            {
-                string tenantId = GetTenantIdFromRequest(context.Request);
-
-                //string connectionString = GetConnectionStringForTenant(tenantId);
-
-                // 存储在请求的Items集合中，以便后续使用
-                context.Request.HttpContext.Items[TenantKey] = tenantId;
-                
-                await next();
-            });
+            _cache = cache;
         }
-        /// <summary>
-        /// 返回与配置文件中数据库连接字符串的Key
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        private static string GetTenantIdFromRequest(HttpRequest request)
-        {
-            try
-            {
-                string ss = request.Headers["tenantId"].ToString().Replace("tenantId ", "");
-                //string host = request.Host.Host;
-                string str = Dictionarys[ss];
-                
-                return str;
-            }
-            catch (Exception e)
-            {
-                return "huangge";
-            }
-            
-        }
-
 
         public static string GetConnectionString(this HttpContext context)
         {
-            if (context.Items.TryGetValue(TenantKey, out object connectionStringObject))
+          
+            try
             {
-                return (string)connectionStringObject;
+                if (context.Request.Path.StartsWithSegments("/api/Home/GetStationList"))
+                {
+                    return "Goodjob_ThirdParty";
+                }
+                if (!_cache.TryGetValue(TenantKey, out List<OutDicModels> list))
+                {
+                    var dic = context.RequestServices.GetService<IOutDicService>();
+                    list = dic.GetDbConnection();
+                    _cache.Set(TenantKey, list, DateTime.Now.AddDays(1));
+                }
+
+                string tenantId = context.Request.Headers["tenantId"].ToString().Replace("tenantId ", "");
+
+                int belongType = Convert.ToInt32(tenantId);
+
+                string s = list.Where(s => s.Id == belongType).Select(s => s.Name).Single();
+                
+                return s;
+                
+            }
+            catch (Exception e)
+            {
+                string logPath = "path/logfile.txt";
+                Directory.CreateDirectory(Path.GetDirectoryName(logPath)); // 确保目录存在
+                using (StreamWriter sw = File.AppendText(logPath))
+                {
+                    sw.WriteLine("数据库连接异常 at: " + DateTime.Now);
+                    sw.WriteLine(e.Message);
+                }
+                throw;
             }
 
-            return "huangge";
-            throw new InvalidOperationException("Connection string is not set for the current request.");
         }
 
-        private static IDictionary<string, string> Dictionarys = new Dictionary<string, string>
-        {
-            {"1","dagang"},
-            {"2","nansha"},
-            {"4","huangge"},
-            {"5","nancun"},
-        };
+        //private static IDictionary<string, string> Dictionarys = new Dictionary<string, string>
+        //{
+        //    {"1","dagang"},
+        //    {"2","nansha"},
+        //    {"4","huangge"},
+        //    {"5","nancun"},
+        //};
         
     }
 }

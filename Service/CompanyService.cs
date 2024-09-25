@@ -449,13 +449,13 @@ namespace Service
                     //await command.Connection.OpenAsync();
                     using (var reader = await command.ExecuteReaderAsync())
                     {
-                        while (reader.Read())
+                        while (await reader.ReadAsync())
                         {
                             jy.MemCount += reader.GetInt32(0);
                         }
-                        if (reader.NextResult())
+                        if (await reader.NextResultAsync())
                         {
-                            while (reader.Read())
+                            while (await reader.ReadAsync())
                             {
                                 jy.PosCount += reader.GetInt32(0);
                             }
@@ -968,7 +968,21 @@ namespace Service
                     RegisterDate = o.RegisterDate,
                     Phone = o.Phone,
                 }).ToListAsync();
+            var result1 = await _goodjobdb.Set<MemInfo>().Where(m => m.MemName.Contains(memName)).Select(o =>
+                new OutMemInfoListByName
+                {
+                    MemId = o.MemId,
+                    MemName = o.MemName,
+                    FoundDate = o.FoundDate,
+                    AddressP = o.AddressP,
+                    AddressC = o.AddressC,
+                    Address = o.Address,
+                    RegisterDate = o.RegisterDate,
+                    Phone = o.Phone,
+                }).ToListAsync();
+
             list.AddRange(result);
+            list.AddRange(result1);
             //list.Add(result);
             return list;
         }

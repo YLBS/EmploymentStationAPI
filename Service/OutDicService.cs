@@ -3,6 +3,9 @@ using Iservice;
 using Models;
 using Microsoft.EntityFrameworkCore;
 using Entity.Goodjob;
+using Microsoft.Data.SqlClient;
+using System.Data;
+using Entity.Sitedata;
 
 namespace Service
 {
@@ -10,7 +13,7 @@ namespace Service
     {
         private readonly Goodjob_OtherContext _goodjobOtherContext;
         private readonly GoodjobContext _goodjobdb;
-        public OutDicService(Goodjob_OtherContext goodjobOtherContext,GoodjobContext goodjobContext)
+        public OutDicService(Goodjob_OtherContext goodjobOtherContext,GoodjobContext goodjobContext, sitedataContext sitedata)
         {
             _goodjobOtherContext = goodjobOtherContext;
             _goodjobdb = goodjobContext;
@@ -239,5 +242,16 @@ namespace Service
             }).ToList();
             return result;
         }
+
+        public  List<OutDicModels> GetDbConnection()
+        {
+            var s =  _goodjobdb.JyRelevanceDbs.Select(j => new OutDicModels
+            {
+                Name = j.DbName,
+                Id = j.BelongType
+            }).ToList();
+            return s;
+        }
+      
     }
 }

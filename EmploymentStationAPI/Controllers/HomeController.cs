@@ -14,7 +14,7 @@ namespace EmploymentStationAPI.Controllers
     public class HomeController : ControllerBase
     {
         private readonly ICompanyService _companyService;
-        public HomeController(ICompanyService iCompanyService, IMapper mapper)
+        public HomeController(ICompanyService iCompanyService)
         {
             _companyService = iCompanyService;
         }

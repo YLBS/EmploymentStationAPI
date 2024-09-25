@@ -13,6 +13,8 @@ using Entity.Sitedata;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using Component;
 using EmploymentStationAPI.JWT;
+using Microsoft.Extensions.Caching.Memory;
+using ServiceStack;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -144,23 +146,15 @@ var isDevelopment = env.IsDevelopment();
 builder.Services.AddDbContext<BaseDbContext>((sp, options) =>
 {
     string str = sp.GetService<IHttpContextAccessor>()?.HttpContext.GetConnectionString();
-    if (string.IsNullOrEmpty(str))
-        str = "huangge";
-    if (isDevelopment)
-    {
-        var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.Development.json").Build();
-        var connectionString = configuration.GetConnectionString(str);
-        options.UseSqlServer(connectionString);
-    }
-    else
-    {
-        var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-        var connectionString = configuration.GetConnectionString(str);
-        options.UseSqlServer(connectionString);
-    }
 
-
+    string connectionString = $"Server=192.168.3.2;uid=goodjobjishu;password=juncaiwang/*-;database={str};";
+    options.UseSqlServer(connectionString);
 });
+builder.Services.AddMemoryCache();
+using var serviceProvider = builder.Services.BuildServiceProvider();
+var cache = serviceProvider.GetRequiredService<IMemoryCache>();
+Configs.Initialize(cache);
+
 
 #endregion
 
@@ -245,23 +239,6 @@ builder.Services.AddDbContext<sitedataContext>(options =>
 #endregion
 
 var app = builder.Build();
-//var ipv4 = "localhost";
-//app.Use(async (context, next) =>
-//{
-//    //var ip = context.Request.HttpContext.Connection.RemoteIpAddress;
-//    var host = context.Request.HttpContext.Request.Host.Host;
-
-//    ipv4 = host.ToString();
-
-//#pragma warning disable CS8604 // 引用类型参数可能为 null。
-//    var configReader = new ConnectSettings(app.Services.GetService<IConfiguration>(), ipv4);
-//#pragma warning restore CS8604 // 引用类型参数可能为 null。
-//    // 继续执行后续中间件
-//    await next();
-//});
-
-app.UseTenantDatabaseSelector();
-// Configure the HTTP request pipeline.
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
