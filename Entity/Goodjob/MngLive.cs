@@ -61,5 +61,10 @@ namespace Entity.Goodjob
         public bool OpenLottery { get; set; }
         public string LotteryTime { get; set; } = null!;
         public int Esid { get; set; }
+        public int PeakOnlineUsers { get; set; }
+        public int ShareCount { get; set; }
+        public int ShareNumber { get; set; }
+        public int MemClickCount { get; set; }
+        public int PosClickCount { get; set; }
     }
 }

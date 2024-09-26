@@ -51,5 +51,6 @@ namespace Entity.Goodjob
         /// 区
         /// </summary>
         public int AddressD { get; set; }
+        public bool IsDelete { get; set; }
     }
 }

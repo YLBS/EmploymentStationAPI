@@ -16,7 +16,7 @@ namespace Models
         public string FoundDateStr {
             get
             {
-                return FoundDate.ToString("YYYY-MM-DD");
+                return FoundDate.ToString("yyyy-mm-dd");
             }
         }
         public int AddressP { get; set; }
@@ -35,8 +35,12 @@ namespace Models
 
         public string RegisterDateStr
         {
-            get { return RegisterDate.ToString("YYYY-MM-DD"); }
+            get { return RegisterDate.ToString("yyyy-MM-dd"); }
         }
         public string Phone { get; set; } = null!;
+        /// <summary>
+        /// 是否已录入
+        /// </summary>
+        public bool IsEntering { get; set; }
     }
 }

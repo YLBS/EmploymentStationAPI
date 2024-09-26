@@ -50,18 +50,11 @@ namespace EmploymentStationAPI.Module
                     sw.WriteLine("数据库连接异常 at: " + DateTime.Now);
                     sw.WriteLine(e.Message);
                 }
-                throw;
+                throw new Exception("tenantId错误,无法连接到数据库");
             }
 
         }
-
-        //private static IDictionary<string, string> Dictionarys = new Dictionary<string, string>
-        //{
-        //    {"1","dagang"},
-        //    {"2","nansha"},
-        //    {"4","huangge"},
-        //    {"5","nancun"},
-        //};
+        
         
     }
 }

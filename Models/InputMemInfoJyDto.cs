@@ -29,7 +29,7 @@ namespace Models
         /// <summary>
         /// 邮箱
         /// </summary>
-        public string Email { get; set; } = null!;
+        public string Email { get; set; } = "";
 
         /// <summary>
         /// 邮箱是否公开
@@ -72,27 +72,27 @@ namespace Models
         /// <summary>
         /// 联系人
         /// </summary>
-        public string ContactPerson { get; set; } = null!;
+        public string ContactPerson { get; set; } = "";
 
         /// <summary>
         /// 联系人职务
         /// </summary>
-        public string ContactDepartment { get; set; } = null!;
+        public string ContactDepartment { get; set; } = "";
 
         /// <summary>
         /// 固定电话 ContactTelZ - ContactTel - ContactTelE
         /// </summary>
-        public string ContactTelZ { get; set; } = null!;
+        public string ContactTelZ { get; set; } = "";
 
-        public string ContactTel { get; set; } = null!;
-        public string ContactTelE { get; set; } = null!;
+        public string ContactTel { get; set; } = "";
+        public string ContactTelE { get; set; } = "1";
 
         /// <summary>
         ///固定电话，是否公开电话
         /// </summary>
         public bool TelShowFlag { get; set; }
 
-        public string Phone { get; set; } = null!;
+        public string Phone { get; set; } = "";
         public bool PhoneFlag { get; set; }
 
         /// <summary>

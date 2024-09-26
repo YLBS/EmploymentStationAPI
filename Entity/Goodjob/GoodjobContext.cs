@@ -163,6 +163,7 @@ namespace Entity.Goodjob
         public virtual DbSet<MngLiveLottery> MngLiveLotteries { get; set; } = null!;
         public virtual DbSet<MngLiveMemSign> MngLiveMemSigns { get; set; } = null!;
         public virtual DbSet<MngLivePo> MngLivePos { get; set; } = null!;
+        public virtual DbSet<MngLiveShare> MngLiveShares { get; set; } = null!;
         public virtual DbSet<MngLiveSubscribe> MngLiveSubscribes { get; set; } = null!;
         public virtual DbSet<MngMemStatistic> MngMemStatistics { get; set; } = null!;
         public virtual DbSet<MngPartnerContent> MngPartnerContents { get; set; } = null!;
@@ -854,7 +855,8 @@ namespace Entity.Goodjob
 
                 entity.Property(e => e.PassWord)
                     .HasMaxLength(200)
-                    .IsUnicode(false);
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
 
                 entity.Property(e => e.UserName)
                     .HasMaxLength(50)
@@ -4828,6 +4830,15 @@ namespace Entity.Goodjob
                     .HasDefaultValueSql("(getdate())");
             });
 
+            modelBuilder.Entity<MngLiveShare>(entity =>
+            {
+                entity.ToTable("Mng_Live_Share");
+
+                entity.Property(e => e.SeareDateTime)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+            });
+
             modelBuilder.Entity<MngLiveSubscribe>(entity =>
             {
                 entity.ToTable("Mng_Live_Subscribe");
@@ -8583,9 +8594,16 @@ namespace Entity.Goodjob
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("(getdate())");
 
+                entity.Property(e => e.MemName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
                 entity.Property(e => e.Name)
                     .HasMaxLength(200)
                     .IsUnicode(false);
+
+                entity.Property(e => e.UpType).HasComment("操作类型，1是修改memInfoJy，2是修改memUsers的账号密码，3是对memInfoJy进行软删除，4是对删除恢复");
             });
 
             modelBuilder.Entity<WapLoginLog>(entity =>

@@ -15,6 +15,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.AccessControl;
+using Dapper;
+using static Dapper.SqlMapper;
 
 namespace Service
 {
@@ -947,6 +949,7 @@ namespace Service
         {
             var list = await _basedb.Set<BaseMemInfo>().Where(m => m.MemName.Contains(memName)).Select(o=>new OutMemInfoListByName
             {
+                IsEntering=true,
                 MemId=o.MemId,
                 MemName=o.MemName,
                 FoundDate=o.FoundDate,
@@ -956,9 +959,11 @@ namespace Service
                 RegisterDate= o.RegisterDate,
                 Phone= o.Phone,
             }).ToListAsync();
-            var result = await _goodjobdb.Set<MemInfoJy>().Where(m => m.MemName.Contains(memName)).Select(o =>
+            var ids1 = list.Select(m => m.MemId).ToArray();
+            var result = await _goodjobdb.Set<MemInfoJy>().Where(m => m.MemName.Contains(memName) && !ids1.Contains(m.MemId) && m.IsDelete==false).Select(o =>
                 new OutMemInfoListByName
                 {
+                    IsEntering = true,
                     MemId = o.MemId,
                     MemName = o.MemName,
                     FoundDate = o.FoundDate,
@@ -968,9 +973,11 @@ namespace Service
                     RegisterDate = o.RegisterDate,
                     Phone = o.Phone,
                 }).ToListAsync();
-            var result1 = await _goodjobdb.Set<MemInfo>().Where(m => m.MemName.Contains(memName)).Select(o =>
+            var ids = result.Select(m => m.MemId).ToArray();
+            var result1 = await _goodjobdb.Set<MemInfo>().Where(m => m.MemName.Contains(memName) && !ids.Contains(m.MemId)).Select(o =>
                 new OutMemInfoListByName
                 {
+                    IsEntering = false,
                     MemId = o.MemId,
                     MemName = o.MemName,
                     FoundDate = o.FoundDate,
@@ -983,7 +990,6 @@ namespace Service
 
             list.AddRange(result);
             list.AddRange(result1);
-            //list.Add(result);
             return list;
         }
 
@@ -1019,75 +1025,202 @@ namespace Service
 
         
 
-        public async Task<UpdateMemInfoJyDto> GetData(int memId)
+        public async Task<UpdateMemInfoJyDto> GetData(int memId,int esId, int belongType)
         {
-            var list =  await _goodjobdb.MemInfoJies.Where(m => m.MemId == memId).FirstOrDefaultAsync();
-            if (list != null)
+            if (esId != 0)
             {
-
-                var entity = _mapper.Map<UpdateMemInfoJyDto>(list);
-                var s = await _goodjobdb.MemUsers.Where(m => m.MemId == memId).FirstAsync();
-                entity.PassWord = Goodjob.Encryption.Encryption.DecryptDES(s.PassWord); 
-                entity.UserName = s.UserName;
-                return entity;
+                var list = await _goodjobdb.MemInfoJies.Where(m => m.MemId == memId && m.IsDelete == false)
+                    .FirstOrDefaultAsync();
+                if (list != null)
+                {
+                    var entity = _mapper.Map<UpdateMemInfoJyDto>(list);
+                    var s = await _goodjobdb.MemUsers.Where(m => m.MemId == memId).FirstAsync();
+                    entity.PassWord = Goodjob.Encryption.Encryption.DecryptDES(s.PassWord);
+                    entity.UserName = s.UserName;
+                    return entity;
+                }
+            }
+            else
+            {
+                string sql =
+                    "SELECT [MemID],[MemName],[LicenceNumber],[Calling],[Properity],[FoundDate] ,[RegisterFund] ,[EmployeeNumber] ,[CompanyIntroduction] ,[ContactPerson] ,[ContactDepartment] ,[ContactTel_Z] contactTelZ,[ContactTel] contactTel,[ContactTel_E] contactTelE,[OldContactTel] ,[TelShowFlag] ,[ContactFax_Z] ,[ContactFax] ,[ContactFax_E] ,[FaxShowFlag] ,[Email] ,[EmailShowFlag] ,[Address_P] addressP,case when exists(select IsShow from Goodjob_Other.dbo.Dic_CIty where Id=[Address_C] and IsShow!=0) then (select IsShow from Goodjob_Other.dbo.Dic_CIty where Id=[Address_C] and IsShow!=0) else  [Address_C] end as [addressC] ,[Address] ,[ZipCode] ,[HomePage] ,[MailCode] ,[LogoFileName] ,[LogoUpdatedate] ,[LogoShowFlag] ,[Iscommend] ,[HasPage] ,[RegisterDate] ,[UpdateDate] ,[Address_T] addressT,[QQ] ,[QQFlag] ,[Phone] ,[PhoneFlag]  ,@belongType belongType ,0 esId   ,case when exists(select IsShow from Goodjob_Other.dbo.Dic_CIty where Id=[Address_C] and IsShow!=0) then [Address_C]    else   0   end as [addressD]   FROM [dbo].[Mem_Info] where memId=@memId";
+                var param = new { memId, belongType };
+                var result = await _basedb.Database.GetDbConnection().QueryFirstOrDefaultAsync<UpdateMemInfoJyDto>(sql,param);
+                if (result != null)
+                {
+                    var s = await _basedb.MemUsers.Where(m => m.MemId == memId).FirstAsync();
+                    result.PassWord = Goodjob.Encryption.Encryption.DecryptDES(s.PassWord);
+                    result.UserName = s.UserName;
+                }
+                return result;
             }
             return null;
         }
-        public async Task<ResultModel> Update(UpdateMemInfoJyDto info, string title)
+        public async Task<ResultModel> Update(UpdateMemInfoJyDto info, string title, int id)
         {
-            ResultModel resultModel = new ResultModel();
-            var list = await _goodjobdb.MemInfoJies.Where(m => m.MemId == info.MemId).FirstOrDefaultAsync();
-            if (list == null)
-            {
 
-                resultModel.Result = false;
-                resultModel.Message = "企业不存在";
-                return resultModel;
+            info.Email = info.Email == null ? "" : info.Email;
+            info.Address = info.Address == null ? "" : info.Address;
+            info.ContactPerson = info.ContactPerson == null ? "" : info.ContactPerson;
+            info.ContactDepartment = info.ContactDepartment == null ? "" : info.ContactDepartment;
+            info.ContactTelZ = info.ContactTelZ == null ? "" : info.ContactTelZ;
+            info.ContactTel = info.ContactTel == null ? "" : info.ContactTel;
+            info.ContactTelE = info.ContactTelE == null ? "" : info.ContactTelE;
+            info.Phone = info.Phone == null ? "" : info.Phone;
+            ResultModel resultModel = new ResultModel();
+            if (info.Esid != 0)
+            {
+                var list = await _goodjobdb.MemInfoJies.Where(m => m.MemId == info.MemId).FirstOrDefaultAsync();
+                if (list == null)
+                {
+                    resultModel.Result = false;
+                    resultModel.Message = "企业不存在";
+                    return resultModel;
+                }
+                var properity = list.Properity;
+                _mapper.Map(info, list);
+                list.Properity = properity;
+                await _goodjobdb.SaveChangesAsync();
+                resultModel.Result = true;
+                resultModel.Message = "修改成功";
+                await AddUpLog(id, title, info.MemId,info.MemName, 1);
             }
-            var properity = list.Properity;
-            _mapper.Map(info, list);
-            list.Properity = properity;
-            await _goodjobdb.SaveChangesAsync();
-            resultModel.Result = true;
-            resultModel.Message = "修改成功";
-            await AddUpLog(title, info.MemId, 1);
+            else
+            {
+                var list = await _basedb.MemInfos.Where(m => m.MemId == info.MemId).FirstOrDefaultAsync();
+                if (list == null)
+                {
+                    resultModel.Result = false;
+                    resultModel.Message = "企业不存在";
+                    return resultModel;
+                }
+
+                int d = info.AddressD;
+                var properity = list.Properity;
+                _mapper.Map(info, list);
+                list.Properity = properity;
+                if (d != 0)
+                    list.AddressC = d;
+                await _basedb.SaveChangesAsync();
+                resultModel.Result = true;
+                resultModel.Message = "修改成功";
+                await AddUpLog(id, title, info.MemId, info.MemName, 1);
+            }
             return resultModel;
         }
 
-        public async Task<ResultModel> Update(AccountModes info, string title)
+        
+
+        public async Task<ResultModel> Update(AccountModes info, string title, int id)
         {
             ResultModel resultModel = new ResultModel();
-            var list = await  _goodjobdb.MemUsers.Where(m => m.MemId == info.MemId).FirstOrDefaultAsync();
-            if (list == null)
+            var list = await  _goodjobdb.MemUsers.Where(m => m.MemId == info.MemId ).FirstOrDefaultAsync();
+            if (list != null)
             {
-                resultModel.Result = false;
-                resultModel.Message = "企业不存在";
+
+                list.UserName = info.UserName;
+                list.PassWord = Goodjob.Encryption.Encryption.EncryptDES(info.PassWord);
+                await _goodjobdb.SaveChangesAsync();
+
+                resultModel.Result = true;
+                resultModel.Message = "修改成功";
+                string memName = await _goodjobdb.MemInfoJies.Where(m => m.MemId == info.MemId).Select(m => m.MemName)
+                    .FirstAsync();
+                await AddUpLog(id, title, info.MemId, memName, 2);
+                return resultModel;
+
+            }
+            var l = await _basedb.MemUsers.Where(m => m.MemId == info.MemId).FirstOrDefaultAsync();
+            if (l != null)
+            {
+                l.UserName = info.UserName;
+                l.PassWord = Goodjob.Encryption.Encryption.EncryptDES(info.PassWord);
+                await _basedb.SaveChangesAsync();
+                resultModel.Result = true;
+                resultModel.Message = "修改成功";
+                string memName = await _basedb.MemInfos.Where(m => m.MemId == info.MemId).Select(m => m.MemName)
+                    .FirstAsync();
+                await AddUpLog(id, title, info.MemId, memName, 2);
                 return resultModel;
             }
-            list.UserName= info.UserName;
-            list.PassWord = Goodjob.Encryption.Encryption.EncryptDES(info.PassWord);
-            await _goodjobdb.SaveChangesAsync();
-            resultModel.Result = true;
-            resultModel.Message = "修改成功";
-            await AddUpLog(title, info.MemId, 2);
+            resultModel.Result = false;
+            resultModel.Message = "企业不存在";
             return resultModel;
+            
         }
         /// <summary>
-        /// 添加修改日志
+        /// 添加日志
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="memId"></param>
-        /// <param name="type"></param>
         /// <returns></returns>
-        private async Task AddUpLog(string name, int memId, int type)
+        private async Task AddUpLog(int id, string name, int memId,string memName, int type)
         {
             UpEnterpriseLog u = new UpEnterpriseLog();
             u.CreateTime = DateTime.Now;
+            u.ZphAdminUserId = id;
             u.Name = name;
             u.MemId = memId;
+            u.MemName = memName;
             u.UpType = type;
             await _goodjobdb.UpEnterpriseLogs.AddAsync(u);
             await _goodjobdb.SaveChangesAsync();
+        }
+
+        public async Task<int> CopyMemInfo(int[] memIds, int belongType)
+        {
+            int i = 0;
+            foreach (var memId in memIds)
+            {
+                if(memId==0)
+                    continue;
+                var l = await _basedb.MemInfos.Where(m => m.MemId == memId).FirstOrDefaultAsync();
+                if (l != null)
+                    continue;
+                var k=await _goodjobdb.MemInfoJies.Where(m => m.MemId == memId).FirstOrDefaultAsync();
+                if (k != null)
+                {
+                    if (k.IsDelete) //录入了，但处于删除状态
+                    {
+                        return 2;
+                    }
+                    return 3;
+                }
+                var param = new { memId, belongType };
+                int j= await _goodjobdb.Database.GetDbConnection()
+                    .ExecuteAsync("CopyMemInfToJy", param, commandType: CommandType.StoredProcedure);
+                if (j != -1) //存储过程没有执行直接返回
+                    i += j;
+            }
+            return i;
+
+        }
+
+        public async Task<int> DelForJy(int memId,string title, int id,int esId)
+        {
+            var s= await _goodjobdb.MemInfoJies.Where(m=>m.MemId==memId).FirstOrDefaultAsync();
+            if (s==null)
+                return 0;
+            if (s.Esid != esId)
+                return 1;
+            if (s.IsDelete)
+                return 2;
+            s.IsDelete= true;
+            await _goodjobdb.SaveChangesAsync();
+            await AddUpLog(id,title, memId,s.MemName, 3);
+            return 3;
+
+        }
+        public async Task<int> RecoverMemInfo(int memId, string title, int id, int esId)
+        {
+            var s = await _goodjobdb.MemInfoJies.Where(m => m.MemId == memId).FirstOrDefaultAsync();
+            if (s == null)
+                return 0;
+            if (s.Esid != esId)
+                return 1;
+            s.IsDelete = false;
+            await _goodjobdb.SaveChangesAsync();
+            await AddUpLog(id,title, memId,s.MemName, 4);
+            return 3;
+
         }
     }
 }

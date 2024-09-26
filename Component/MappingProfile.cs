@@ -66,6 +66,7 @@ namespace Component
             //修改
             CreateMap<UpdateMemInfoJyDto, MemInfoJy>();
             CreateMap<OutBaseNewsInfoDto, BaseNewsInfoEntity>();
+            CreateMap<UpdateMemInfoJyDto, BaseMemInfo>();
 
 
             //修改时，_mapper.Map(dto, 查询回来的目标);

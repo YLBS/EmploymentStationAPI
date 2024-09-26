@@ -802,27 +802,27 @@ namespace Service
             }
         }
 
-        public async Task<ResultModel> UpPositionSate(int esId,int memId, int[] posIds, int state)
+        public async Task<ResultModel> UpPositionSate(UpPosStateModel upPosStateModel)
         {
             int i = 0;
             ResultModel result = new ResultModel();
-            if (esId == 0)
+            if (upPosStateModel.esId == 0)
             {
-                var list = await _basedb.Set<BaseMemPosition>().Where(m => posIds.Contains(m.PosId) && m.MemId== memId).ToListAsync();
+                var list = await _basedb.Set<BaseMemPosition>().Where(m => upPosStateModel.posIds.Contains(m.PosId) && m.MemId== upPosStateModel.memId).ToListAsync();
                 if (list.Count!=0){
                 }
                 foreach (var item in list)
                 {
-                    item.PosState = (byte)state;
+                    item.PosState = (byte)upPosStateModel.state;
                 }
                 i = await _basedb.SaveChangesAsync();
             }
             else
             {
-                var list = await _goodjobdb.Set<MemPosition>().Where(m => posIds.Contains(m.PosId) && m.MemId == memId).ToListAsync();
+                var list = await _goodjobdb.Set<MemPosition>().Where(m => upPosStateModel.posIds.Contains(m.PosId) && m.MemId == upPosStateModel.memId).ToListAsync();
                 foreach (var item in list)
                 {
-                    item.PosState = (byte)state;
+                    item.PosState = (byte)upPosStateModel.state;
                 }
 
                 i = await _goodjobdb.SaveChangesAsync();

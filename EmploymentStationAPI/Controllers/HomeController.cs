@@ -26,14 +26,14 @@ namespace EmploymentStationAPI.Controllers
         public async Task<IActionResult> GetStationList()
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
-            if (userId != null) 
+            if (userId != null)
             {
                 var data = await _companyService.GetJiuYeStation(Convert.ToInt32(userId));
                 return Ok(new { Code = 200, Data = data });
             }
 
             return Unauthorized();
-            
+
         }
 
         /// <summary>
@@ -45,14 +45,14 @@ namespace EmploymentStationAPI.Controllers
         /// <param name="endDate">结束时间</param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> GetCompanyList([FromQuery]BaseFilterModels baseFilter, int esId, string beginDate, string endDate)
+        public async Task<IActionResult> GetCompanyList([FromQuery] BaseFilterModels baseFilter, int esId, string beginDate, string endDate)
         {
-            var list = await _companyService.GetOutMemInfoAsync(baseFilter,esId, beginDate, endDate);
+            var list = await _companyService.GetOutMemInfoAsync(baseFilter, esId, beginDate, endDate);
             var data = list.Item1;
             var count = list.Count;
-            return Ok(new { Code=200,Data=new{ count, data } });
+            return Ok(new { Code = 200, Data = new { count, data } });
         }
-        
+
 
         /// <summary>
         /// 失业登记
@@ -60,7 +60,7 @@ namespace EmploymentStationAPI.Controllers
         /// <param name="input"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> AddUnemployment([FromBody]InputRegisterUnemploymentDto input)
+        public async Task<IActionResult> AddUnemployment([FromBody] InputRegisterUnemploymentDto input)
         {
             var tenantId = HttpContext.Request.Headers["tenantId"].ToString().Replace("tenantId ", "");
             if (string.IsNullOrEmpty(tenantId))
@@ -74,14 +74,14 @@ namespace EmploymentStationAPI.Controllers
                 var dt = await _companyService.AddRegisterUnemployment(input, tenantId, loginId);
                 if (dt.Result)
                 {
-                    return Ok(new { Code = 200, Data =new {Msg="新增成功" } });
+                    return Ok(new { Code = 200, Data = new { Msg = "新增成功" } });
                 }
 
                 return Ok(new { Code = 400, Data = new { Msg = dt.Message } });
             }
-            return BadRequest(new {Code=403,Data= "Token过期" });
+            return BadRequest(new { Code = 403, Data = "Token过期" });
         }
-       
+
         /// <summary>
         /// 返回人员信息列表
         /// </summary>
@@ -90,7 +90,7 @@ namespace EmploymentStationAPI.Controllers
         /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> GetUnemploymentInfoList([FromQuery]
-            BaseFilterModels baseFilter,int esId)
+            BaseFilterModels baseFilter, int esId)
         {
             //var tenantId = HttpContext.Request.Headers["tenantId"].ToString().Replace("tenantId ", "");
             //if (string.IsNullOrEmpty(tenantId))
@@ -101,7 +101,7 @@ namespace EmploymentStationAPI.Controllers
             var data = list.Item1;
             var count = list.Count;
             return Ok(new { Code = 200, Data = new { count, data } });
-            
+
         }
         /// <summary>
         /// 获取失业人员信息
@@ -129,7 +129,7 @@ namespace EmploymentStationAPI.Controllers
         /// <param name="unemployment"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> UpUnemploymentInfo([FromBody]UpRegisterUnemploymentDto unemployment)
+        public async Task<IActionResult> UpUnemploymentInfo([FromBody] UpRegisterUnemploymentDto unemployment)
         {
             var dt = await _companyService.UpUnemploymentInfo(unemployment);
 
@@ -137,7 +137,7 @@ namespace EmploymentStationAPI.Controllers
             {
                 return Ok(new { Code = 200, Data = "更新成功" });
             }
-            if(string.IsNullOrEmpty(dt.Message))
+            if (string.IsNullOrEmpty(dt.Message))
                 return Ok(new { Code = 400, Data = "更新失败" });
             else
                 return Ok(new { Code = 400, Data = dt.Message });
@@ -176,9 +176,9 @@ namespace EmploymentStationAPI.Controllers
             }
             return Ok(new { Code = 400, Data = dt.Message });
         }
-        
-       
-        
+
+
+
         /// <summary>
         /// 获取招聘登记列表
         /// </summary>
@@ -216,12 +216,15 @@ namespace EmploymentStationAPI.Controllers
         /// <summary>
         /// 返回需要修改的企业信息
         /// </summary>
-        /// <param name="memId"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> GetData(int memId)
+        public async Task<IActionResult> GetData(int memId, int esId)
         {
-            var s = await _companyService.GetData(memId);
+            var tenantId = HttpContext.Request.Headers["tenantId"].ToString().Replace("tenantId ", "");
+            if (string.IsNullOrEmpty(tenantId))
+                return BadRequest(new { Code = 500, Data = "tenantId 为空" });
+            int.TryParse(tenantId, out int belongType);
+            var s = await _companyService.GetData(memId, esId, belongType);
             if (s == null)
                 return NotFound("企业不存在");
             return Ok(new { Code = 200, Data = s });
@@ -238,11 +241,13 @@ namespace EmploymentStationAPI.Controllers
         public async Task<IActionResult> UpdateInfo([FromForm] UpdateMemInfoJyDto info)
         {
             var title = User.Claims.FirstOrDefault(c => c.Type == "Title")?.Value;
-            if (title == null)
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            if (title == null || userId == null)
             {
                 return Unauthorized();
             }
-            var s = await _companyService.Update(info, title);
+            int.TryParse(userId, out int id);
+            var s = await _companyService.Update(info, title, id);
             if (s.Result)
             {
                 return Ok(new { Code = 200, Data = s.Message });
@@ -258,16 +263,86 @@ namespace EmploymentStationAPI.Controllers
         public async Task<IActionResult> UpdateAccount([FromForm] AccountModes modes)
         {
             var title = User.Claims.FirstOrDefault(c => c.Type == "Title")?.Value;
-            if (title == null)
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            if (title == null || userId == null)
             {
                 return Unauthorized();
             }
-            var s = await _companyService.Update(modes, title);
+            int.TryParse(userId, out int id);
+            var s = await _companyService.Update(modes, title, id);
             if (s.Result)
             {
                 return Ok(new { Code = 200, Data = s.Message });
             }
             return NotFound("企业不存在");
         }
+        /// <summary>
+        /// 复制企业信息
+        /// </summary>
+        /// <param name="memIds">数组</param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> CopyMemInfo([FromBody] int[] memIds)
+        {
+            var tenantId = HttpContext.Request.Headers["tenantId"].ToString().Replace("tenantId ", "");
+            if (string.IsNullOrEmpty(tenantId))
+                return BadRequest(new { Code = 500, Data = "tenantId 为空" });
+            int.TryParse(tenantId, out int belongType);
+            int i = await _companyService.CopyMemInfo(memIds, belongType);
+
+            if (i == 1) return Ok(new { Code = 200, Data = "操作成功" });
+            if (i == 2) return Ok(new { Code = 400, Data = "操作失败，该企业已被标为删除状态" });
+            return Ok(new { Code = 400, Data = "操作失败，其他驿站已录入该企业或该企业已录入" });
+        }
+
+        /// <summary>
+        /// 删除本驿站的企业信息，只是进行软删除，还可以恢复的
+        /// </summary>
+        /// <param name="memId">企业Id</param>
+        /// <param name="esId">驿站Id</param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> DelMemInfo(int memId,int esId)
+        {
+            var title = User.Claims.FirstOrDefault(c => c.Type == "Title")?.Value;
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            if (title == null || userId == null)
+            {
+                return Unauthorized();
+            }
+            int.TryParse(userId, out int id);
+            int i = await _companyService.DelForJy(memId, title, id,esId);
+            if (i == 0)
+                return NotFound("企业不存在");
+            if (i == 1)
+                return Ok(new { Code = 400, Data = "此企业不属于你的驿站" }); 
+            if (i == 2)
+                return Ok(new { Code = 400, Data = "企业已是删除状态" });
+            return Ok(new { Code = 200, Data = "删除成功" });
+        }
+        /// <summary>
+        /// 恢复本驿站企业信息，将企业设置为 未删除状态
+        /// </summary>
+        /// <param name="memId">企业Id</param>
+        /// <param name="esId">驿站Id</param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> RecoverMemInfo(int memId, int esId)
+        {
+            var title = User.Claims.FirstOrDefault(c => c.Type == "Title")?.Value;
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            if (title == null || userId == null)
+            {
+                return Unauthorized();
+            }
+            int.TryParse(userId, out int id);
+            int i = await _companyService.RecoverMemInfo(memId, title, id, esId);
+            if (i == 0)
+                return NotFound("企业不存在");
+            if (i == 1)
+                return Ok(new { Code = 400, Data = "此企业不属于你的驿站" });
+            return Ok(new { Code = 200, Data = "操作成功" });
+        }
+
     }
 }

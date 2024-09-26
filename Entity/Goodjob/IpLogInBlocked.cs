@@ -10,7 +10,7 @@ namespace Entity.Goodjob
     {
         public int Id { get; set; }
         public string UserName { get; set; } = null!;
-        public string PassWord { get; set; } = null!;
+        public string? PassWord { get; set; }
         public string Ip { get; set; } = null!;
         /// <summary>
         /// 账号类型 1 企业 ；2 个人

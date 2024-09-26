@@ -89,18 +89,26 @@ namespace Iservice
         /// <summary>
         /// 返回需要修改的数据
         /// </summary>
-        /// <param name="memId"></param>
         /// <returns></returns>
-        Task<UpdateMemInfoJyDto> GetData(int memId);
+        Task<UpdateMemInfoJyDto> GetData(int memId,int esId,int belongType);
         /// <summary>
         /// 修改企业信息
         /// </summary>
         /// <returns></returns>
-        Task<ResultModel> Update(UpdateMemInfoJyDto info, string  title);
+        Task<ResultModel> Update(UpdateMemInfoJyDto info, string  title,int id);
         /// <summary>
         /// 修改账号密码
         /// </summary>
         /// <returns></returns>
-        Task<ResultModel> Update(AccountModes info, string title);
+        Task<ResultModel> Update(AccountModes info, string title, int id);
+
+        Task<int> CopyMemInfo(int[] memIds, int belongType);
+        /// <summary>
+        /// 删除就业驿站的企业信息,不删除memUser表
+        /// </summary>
+        /// <returns></returns>
+        Task<int> DelForJy(int memId,string title, int id,int esId);
+        Task<int> RecoverMemInfo(int memId,string title, int id,int esId);
+        
     }
 }

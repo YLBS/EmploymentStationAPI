@@ -40,7 +40,7 @@ namespace Iservice
         /// <returns></returns>
         Task<ResultModel> AddMemPosition(InputPositionDto dto);
 
-        Task<ResultModel> UpPositionSate(int esId, int memId, int[] posIds, int sate);
+        Task<ResultModel> UpPositionSate(UpPosStateModel upPosStateModel);
 
     }
 }

@@ -23,7 +23,8 @@ namespace Entity.Base
         public virtual DbSet<BaseMemInfo> MemInfos { get; set; } = null!;
         public virtual DbSet<BaseMemPosJobLocation> BaseMemPosJobLocation { get; set; } = null!;
         public virtual DbSet<BaseMemPosJobFunction> BaseMemPosJobFunctions { get; set; } = null!;
-        public virtual DbSet<BaseNewsInfoEntity> BaseNewsInfos { get; set; } = null!;
+        public virtual DbSet<BaseNewsInfoEntity> BaseNewsInfos { get; set; } = null!; 
+        public virtual DbSet<BaseMemUser> MemUsers { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -335,6 +336,7 @@ namespace Entity.Base
 
                 entity.Property(e => e.PosId).HasColumnName("PosID");
             });
+
             modelBuilder.Entity<BaseNewsInfoEntity>(entity =>
             {
                 entity.HasKey(e => e.NewsId);
@@ -379,6 +381,80 @@ namespace Entity.Base
                 entity.Property(e => e.Matk).HasColumnName("Matk");
                 entity.Property(e => e.UserId).HasColumnName("UserID");
             });
+
+            modelBuilder.Entity<BaseMemUser>(entity =>
+            {
+                entity.HasKey(e => e.MemId);
+
+                entity.ToTable("Mem_Users");
+
+                entity.Property(e => e.MemId)
+                    .ValueGeneratedNever()
+                    .HasColumnName("MemID");
+
+                entity.Property(e => e.BeginValidDate)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.CheckDate)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.CheckUserId).HasColumnName("CheckUserID");
+
+                entity.Property(e => e.DateMaxViewNum).HasDefaultValueSql("((100))");
+
+                entity.Property(e => e.EndValidDate)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.LastLoginDate)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.LastLoginIp)
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasColumnName("LastLoginIP")
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.MaxPosNum).HasDefaultValueSql("((999))");
+
+                entity.Property(e => e.PassWord)
+                    .HasMaxLength(50)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.RegisterDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.SalerEmail)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.SalerTel)
+                    .HasMaxLength(80)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.SalerUserId).HasColumnName("SalerUserID");
+
+                entity.Property(e => e.SalerUserName)
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+
+                entity.Property(e => e.UpdateDate)
+                    .HasColumnType("smalldatetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.UserName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasDefaultValueSql("('')");
+            });
+
         }
     }
 }

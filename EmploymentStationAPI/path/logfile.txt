@@ -325,3 +325,93 @@ Value cannot be null. (Parameter 'connectionString')
 Input string was not in a correct format.
 Error occurred at: 2024/9/24 17:06:42
 Input string was not in a correct format.
+数据库连接异常 at: 2024/9/25 9:17:14
+Input string was not in a correct format.
+Error occurred at: 2024/9/25 9:17:15
+Input string was not in a correct format.
+数据库连接异常 at: 2024/9/25 9:19:03
+Sequence contains no elements
+Error occurred at: 2024/9/25 9:19:03
+Sequence contains no elements
+数据库连接异常 at: 2024/9/25 9:25:55
+Sequence contains no elements
+Error occurred at: 2024/9/25 9:25:56
+Sequence contains no elements
+数据库连接异常 at: 2024/9/25 9:27:12
+Input string was not in a correct format.
+Error occurred at: 2024/9/25 9:27:12
+Input string was not in a correct format.
+数据库连接异常 at: 2024/9/25 9:27:29
+Input string was not in a correct format.
+Error occurred at: 2024/9/25 9:27:29
+Input string was not in a correct format.
+数据库连接异常 at: 2024/9/25 9:28:10
+Sequence contains no elements
+Error occurred at: 2024/9/25 9:28:10
+Sequence contains no elements
+数据库连接异常 at: 2024/9/25 9:28:19
+Sequence contains no elements
+Error occurred at: 2024/9/25 9:28:25
+Sequence contains no elements
+数据库连接异常 at: 2024/9/25 9:29:17
+Input string was not in a correct format.
+数据库连接异常 at: 2024/9/25 9:37:45
+Input string was not in a correct format.
+Error occurred at: 2024/9/25 9:37:45
+tenantId错误
+数据库连接异常 at: 2024/9/25 9:39:12
+Input string was not in a correct format.
+Error occurred at: 2024/9/25 9:39:12
+tenantId错误
+数据库连接异常 at: 2024/9/25 14:21:40
+Sequence contains no elements
+Error occurred at: 2024/9/25 14:21:41
+tenantId错误,无法连接到数据库
+Error occurred at: 2024/9/25 14:45:30
+Object reference not set to an instance of an object.
+Error occurred at: 2024/9/25 14:46:23
+Object reference not set to an instance of an object.
+Error occurred at: 2024/9/25 14:51:08
+Object reference not set to an instance of an object.
+Error occurred at: 2024/9/26 9:07:28
+必须声明标量变量 "@belongType"。
+必须声明标量变量 "@belongType"。
+关键字 'then' 附近有语法错误。
+Error occurred at: 2024/9/26 9:25:29
+An error occurred while saving the entity changes. See the inner exception for details.
+Error occurred at: 2024/9/26 14:49:50
+Object reference not set to an instance of an object.
+Error occurred at: 2024/9/26 14:53:05
+Object reference not set to an instance of an object.
+Error occurred at: 2024/9/26 14:53:36
+Object reference not set to an instance of an object.
+Error occurred at: 2024/9/26 14:55:49
+Object reference not set to an instance of an object.
+Error occurred at: 2024/9/26 14:56:27
+Object reference not set to an instance of an object.
+Error occurred at: 2024/9/26 14:58:02
+Object reference not set to an instance of an object.
+Error occurred at: 2024/9/26 15:00:03
+Object reference not set to an instance of an object.
+数据库连接异常 at: 2024/9/26 15:09:57
+Input string was not in a correct format.
+Error occurred at: 2024/9/26 15:09:57
+tenantId错误,无法连接到数据库
+Error occurred at: 2024/9/26 15:14:18
+An error occurred while saving the entity changes. See the inner exception for details.
+Error occurred at: 2024/9/26 15:15:08
+An error occurred while saving the entity changes. See the inner exception for details.
+Error occurred at: 2024/9/26 15:19:30
+An error occurred while saving the entity changes. See the inner exception for details.
+Error occurred at: 2024/9/26 15:20:24
+An error occurred while saving the entity changes. See the inner exception for details.
+Error occurred at: 2024/9/26 15:25:16
+An error occurred while saving the entity changes. See the inner exception for details.
+Error occurred at: 2024/9/26 15:26:00
+An error occurred while saving the entity changes. See the inner exception for details.
+Error occurred at: 2024/9/26 15:26:51
+An error occurred while saving the entity changes. See the inner exception for details.
+Error occurred at: 2024/9/26 15:28:17
+An error occurred while saving the entity changes. See the inner exception for details.
+Error occurred at: 2024/9/26 15:30:46
+An error occurred while saving the entity changes. See the inner exception for details.

@@ -133,9 +133,6 @@ builder.Services.AddSingleton(mapper);
 
 builder.Services.AddHttpContextAccessor();
 
-// 获取当前机器的IP地址
-//var hostName = Dns.GetHostName();
-//var ip = Dns.GetHostEntry(hostName).AddressList[0];
 
 //判断是不是开发模式
 var env = builder.Environment;
@@ -145,9 +142,10 @@ var isDevelopment = env.IsDevelopment();
 
 builder.Services.AddDbContext<BaseDbContext>((sp, options) =>
 {
+    string con = builder.Configuration.GetConnectionString("BaseConnection");
     string str = sp.GetService<IHttpContextAccessor>()?.HttpContext.GetConnectionString();
-
-    string connectionString = $"Server=192.168.3.2;uid=goodjobjishu;password=juncaiwang/*-;database={str};";
+    
+    string connectionString = string.Format(con, str);
     options.UseSqlServer(connectionString);
 });
 builder.Services.AddMemoryCache();
