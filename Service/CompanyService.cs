@@ -2,21 +2,14 @@
 using Component.Dictionary;
 using Entity.Base;
 using Entity.Goodjob;
-using Entity.Goodjob_Other;
 using Entity.Sitedata;
 using Iservice;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Models;
-using ServiceStack;
-using ServiceStack.Script;
-using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.AccessControl;
 using Dapper;
-using static Dapper.SqlMapper;
+using System.Linq;
 
 namespace Service
 {
@@ -194,10 +187,12 @@ namespace Service
                         parameter);
 
                     int myUserId = (int)parameter.Value;
-                    //录入来源
-                    int registerFrom = RegisterFrom.Dictionarys[tenantId];
                     //简历属性
                     int belongType = Convert.ToInt32(tenantId);
+                    //录入来源
+                    //int registerFrom = RegisterFrom.Dictionarys[tenantId];
+                    int registerFrom = await _goodjobdb.ResumeRegisterFroms.Where(m=>m.BelongType==belongType).Select(m=>m.FromId).FirstOrDefaultAsync();
+                    if (registerFrom == 0) registerFrom = -1; //表示从驿站后台添加的，到不知道是哪个驿站。未知
                     Random random = new Random();
                     int randomNumber = random.Next(10000, 100000);
                     var user = new MyUser()
@@ -214,7 +209,7 @@ namespace Service
                     myResume.PerName = dto.UserName;
                     myResume.JobSeeking = dto.ResumeTitle;
                     myResume.MobileNum = dto.PhoneNum;
-                    myResume.MyUserId = 123;
+                    myResume.MyUserId = myUserId;
                     myResume.CheckFlag = 1;//审核标志1=待审核，2=审核通过，3=审核不通过，4=更新后待复审 
                     myResume.WorkWrite = 1;
                     myResume.EduWrite = 1;
@@ -1194,33 +1189,7 @@ namespace Service
 
         }
 
-        public async Task<int> DelForJy(int memId,string title, int id,int esId)
-        {
-            var s= await _goodjobdb.MemInfoJies.Where(m=>m.MemId==memId).FirstOrDefaultAsync();
-            if (s==null)
-                return 0;
-            if (s.Esid != esId)
-                return 1;
-            if (s.IsDelete)
-                return 2;
-            s.IsDelete= true;
-            await _goodjobdb.SaveChangesAsync();
-            await AddUpLog(id,title, memId,s.MemName, 3);
-            return 3;
-
-        }
-        public async Task<int> RecoverMemInfo(int memId, string title, int id, int esId)
-        {
-            var s = await _goodjobdb.MemInfoJies.Where(m => m.MemId == memId).FirstOrDefaultAsync();
-            if (s == null)
-                return 0;
-            if (s.Esid != esId)
-                return 1;
-            s.IsDelete = false;
-            await _goodjobdb.SaveChangesAsync();
-            await AddUpLog(id,title, memId,s.MemName, 4);
-            return 3;
-
-        }
+        
+       
     }
 }

@@ -68,7 +68,8 @@ namespace Entity.Goodjob
         public bool IsRefresh { get; set; }
         /// <summary>
         /// 0：PC 1：触摸版 2：安卓 3：苹果 5：小程序 7百度简历 8百度小程序 9今日头条 12 支付宝小程序 14 番禺小程序 15南沙小程序 20招聘会,
-        /// 23黄阁就业驿站，24大岗就业驿站，25南沙就业驿站，26南村就业驿站
+        /// 23黄阁就业驿站，24大岗就业驿站，25南沙就业驿站，26南村就业驿站,27大龙街，28 东环街，29 小谷围街,30 中村街，31 大石街
+        /// -1 未知，更多查看表 ResumeRegisterFrom
         /// </summary>
         public int RegisterFrom { get; set; }
         /// <summary>

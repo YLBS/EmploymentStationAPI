@@ -415,3 +415,19 @@ Error occurred at: 2024/9/26 15:28:17
 An error occurred while saving the entity changes. See the inner exception for details.
 Error occurred at: 2024/9/26 15:30:46
 An error occurred while saving the entity changes. See the inner exception for details.
+Error occurred at: 2024/9/29 11:08:29
+Unable to resolve service for type 'Iservice.IPrivateService' while attempting to activate 'EmploymentStationAPI.Controllers.PrivateController'.
+Error occurred at: 2024/9/29 11:14:28
+找不到存储过程 'DelResumeForJy'。
+Error occurred at: 2024/9/29 11:21:14
+An error occurred while saving the entity changes. See the inner exception for details.
+违反了 UNIQUE KEY 约束“UQ__ResumeRe__CDC135DE4B8929AF”。不能在对象“dbo.ResumeRegisterFrom”中插入重复键。重复键值为 (99)。
+语句已终止。
+Error occurred at: 2024/9/29 11:29:36
+An error occurred while saving the entity changes. See the inner exception for details.
+违反了 UNIQUE KEY 约束“UQ__ResumeRe__CDC135DE4B8929AF”。不能在对象“dbo.ResumeRegisterFrom”中插入重复键。重复键值为 (99)。
+语句已终止。
+Error occurred at: 2024/9/29 11:30:30
+An error occurred while saving the entity changes. See the inner exception for details.
+违反了 UNIQUE KEY 约束“UQ__ResumeRe__CDC135DE4B8929AF”。不能在对象“dbo.ResumeRegisterFrom”中插入重复键。重复键值为 (99)。
+语句已终止。

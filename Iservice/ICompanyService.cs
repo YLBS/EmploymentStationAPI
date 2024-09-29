@@ -103,12 +103,7 @@ namespace Iservice
         Task<ResultModel> Update(AccountModes info, string title, int id);
 
         Task<int> CopyMemInfo(int[] memIds, int belongType);
-        /// <summary>
-        /// 删除就业驿站的企业信息,不删除memUser表
-        /// </summary>
-        /// <returns></returns>
-        Task<int> DelForJy(int memId,string title, int id,int esId);
-        Task<int> RecoverMemInfo(int memId,string title, int id,int esId);
+       
         
     }
 }

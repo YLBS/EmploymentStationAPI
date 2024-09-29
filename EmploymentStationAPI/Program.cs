@@ -126,6 +126,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddTransient<IJobService, JobService>();
 builder.Services.AddTransient<ILiveAndZph, LiveAndZph>();
 builder.Services.AddTransient<INewsInfoService, NewsInfoService>();
+builder.Services.AddTransient<IPrivateService, PrivateService>();
 
 var mapper = AutoMapperConfig.ConfigureAutoMapper();
 builder.Services.AddSingleton(mapper);

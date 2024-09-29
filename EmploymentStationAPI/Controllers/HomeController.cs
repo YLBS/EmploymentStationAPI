@@ -295,54 +295,5 @@ namespace EmploymentStationAPI.Controllers
             return Ok(new { Code = 400, Data = "操作失败，其他驿站已录入该企业或该企业已录入" });
         }
 
-        /// <summary>
-        /// 删除本驿站的企业信息，只是进行软删除，还可以恢复的
-        /// </summary>
-        /// <param name="memId">企业Id</param>
-        /// <param name="esId">驿站Id</param>
-        /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> DelMemInfo(int memId,int esId)
-        {
-            var title = User.Claims.FirstOrDefault(c => c.Type == "Title")?.Value;
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
-            if (title == null || userId == null)
-            {
-                return Unauthorized();
-            }
-            int.TryParse(userId, out int id);
-            int i = await _companyService.DelForJy(memId, title, id,esId);
-            if (i == 0)
-                return NotFound("企业不存在");
-            if (i == 1)
-                return Ok(new { Code = 400, Data = "此企业不属于你的驿站" }); 
-            if (i == 2)
-                return Ok(new { Code = 400, Data = "企业已是删除状态" });
-            return Ok(new { Code = 200, Data = "删除成功" });
-        }
-        /// <summary>
-        /// 恢复本驿站企业信息，将企业设置为 未删除状态
-        /// </summary>
-        /// <param name="memId">企业Id</param>
-        /// <param name="esId">驿站Id</param>
-        /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> RecoverMemInfo(int memId, int esId)
-        {
-            var title = User.Claims.FirstOrDefault(c => c.Type == "Title")?.Value;
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
-            if (title == null || userId == null)
-            {
-                return Unauthorized();
-            }
-            int.TryParse(userId, out int id);
-            int i = await _companyService.RecoverMemInfo(memId, title, id, esId);
-            if (i == 0)
-                return NotFound("企业不存在");
-            if (i == 1)
-                return Ok(new { Code = 400, Data = "此企业不属于你的驿站" });
-            return Ok(new { Code = 200, Data = "操作成功" });
-        }
-
     }
 }

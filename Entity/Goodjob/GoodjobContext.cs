@@ -289,6 +289,7 @@ namespace Entity.Goodjob
         public virtual DbSet<RecommendedRecord> RecommendedRecords { get; set; } = null!;
         public virtual DbSet<RecruitmentRegister> RecruitmentRegisters { get; set; } = null!;
         public virtual DbSet<RegisterSign> RegisterSigns { get; set; } = null!;
+        public virtual DbSet<ResumeRegisterFrom> ResumeRegisterFroms { get; set; } = null!;
         public virtual DbSet<SelfServiceOrder> SelfServiceOrders { get; set; } = null!;
         public virtual DbSet<SeoUrl> SeoUrls { get; set; } = null!;
         public virtual DbSet<SetArea> SetAreas { get; set; } = null!;
@@ -315,7 +316,7 @@ namespace Entity.Goodjob
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Data Source=192.168.3.2;Initial Catalog=Goodjob;User ID=goodjobjishu;Password=juncaiwang/*-;Encrypt=False;");
+                optionsBuilder.UseSqlServer("Data Source=192.168.3.2;Initial Catalog=Goodjob;User ID=goodjobjyyz;Password=juncaiwang/*-;Encrypt=False;");
             }
         }
 
@@ -6812,7 +6813,7 @@ namespace Entity.Goodjob
                     .HasDefaultValueSql("(getdate())")
                     .HasComment("账号注册日期");
 
-                entity.Property(e => e.RegisterFrom).HasComment("0：PC 1：触摸版 2：安卓 3：苹果 5：小程序 7百度简历 8百度小程序 9今日头条 12 支付宝小程序 14 番禺小程序 15南沙小程序 20招聘会,\r\n23黄阁就业驿站，24大岗就业驿站，25南沙就业驿站，26南村就业驿站");
+                entity.Property(e => e.RegisterFrom).HasComment("0：PC 1：触摸版 2：安卓 3：苹果 5：小程序 7百度简历 8百度小程序 9今日头条 12 支付宝小程序 14 番禺小程序 15南沙小程序 20招聘会,\r\n23黄阁就业驿站，24大岗就业驿站，25南沙就业驿站，26南村就业驿站,27大龙街，28 东环街，29 小谷围街,30 中村街，31 大石街\r\n-1 未知，更多查看表 ResumeRegisterFrom");
 
                 entity.Property(e => e.RequestVideoDate).HasColumnType("smalldatetime");
 
@@ -8187,6 +8188,16 @@ namespace Entity.Goodjob
                     .HasComment("录入驿站ID");
 
                 entity.Property(e => e.Type).HasComment("1 失业人员 2 退伍军人");
+            });
+
+            modelBuilder.Entity<ResumeRegisterFrom>(entity =>
+            {
+                entity.ToTable("ResumeRegisterFrom");
+
+                entity.HasIndex(e => e.FromId, "UQ__ResumeRe__CDC135DE4B8929AF")
+                    .IsUnique();
+
+                entity.Property(e => e.Describe).HasMaxLength(20);
             });
 
             modelBuilder.Entity<SelfServiceOrder>(entity =>
