@@ -10,6 +10,8 @@ using Models;
 using System.Data;
 using Dapper;
 using System.Linq;
+using Goodjob.Common;
+using Entity.Goodjob_Other;
 
 namespace Service
 {
@@ -45,31 +47,35 @@ namespace Service
                 param3.Value = baseFilter.PageIndex;
                 command.Parameters.Add(param3);
                 var param4 = new SqlParameter("@Filter", System.Data.SqlDbType.VarChar);
-                string filter = " and 1=1 ";
+                string filter = string.Empty;
                 if (!string.IsNullOrEmpty(baseFilter.Name))
                 {
-                    filter += " and MemName like '%" + baseFilter.Name + "%' ";
+                    string name = baseFilter.Name.Replace("'","");
+                   // filter += " and MemName like '%" + name + "%' ";
+                    var p = new SqlParameter("@Name", System.Data.SqlDbType.VarChar);
+                    p.Value = name;
+                    command.Parameters.Add(p);
                 }
                 if (!string.IsNullOrEmpty(beginDate))
                 {
-                    filter += " and RegisterDate >='" + beginDate+"' ";
+                    filter += " and a1.RegisterDate >='" + beginDate+"' ";
                 }
                 if (!string.IsNullOrEmpty(endDate))
                 {
-                    filter += " and RegisterDate <='" + endDate + "' ";
+                    filter += " and a1.RegisterDate <='" + Convert.ToDateTime(endDate).AddDays(1).AddSeconds(-1) + "' ";
                 }
                 param4.Value = filter;
                 command.Parameters.Add(param4);
                 
                 if (baseFilter.Id == 1)
                 {
-                    var param5 = new SqlParameter("@posSumFilter", System.Data.SqlDbType.VarChar);
+                    var param5 = new SqlParameter("@PosSumFilter", System.Data.SqlDbType.VarChar);
                     param5.Value = " and PosNum !=0 ";
                     command.Parameters.Add(param5);
                 }
                 if (baseFilter.Id == 2)
                 {
-                    var param5 = new SqlParameter("@posSumFilter", System.Data.SqlDbType.VarChar);
+                    var param5 = new SqlParameter("@PosSumFilter", System.Data.SqlDbType.VarChar);
                     param5.Value = " and PosNum =0 ";
                     command.Parameters.Add(param5);
                 }
@@ -104,7 +110,7 @@ namespace Service
 
             }
 
-            return (outMemInfos, count);
+            return (outMemInfos.OrderByDescending(m=>m.PosNum).ToList(), count);
             #region MyRegion
 
             //var list = await _goodjobdb.Set<MemInfoJy>().Where(o=>o.Esid == esId).Select(o =>
@@ -163,11 +169,211 @@ namespace Service
             ResultModel resultModel = new ResultModel();
 
             var list = await _goodjobdb.MyUsers.Where(m => m.PhoneNum == dto.PhoneNum).FirstOrDefaultAsync();
+            //简历属性
+            int belongType = Convert.ToInt32(tenantId);
             if (list != null)
             {
-                resultModel.Result = false;
-                resultModel.Message = "手机号重复";
-                return resultModel;
+
+                string describe = await _goodjobdb.ResumeRegisterFroms.Where(m => m.BelongType == list.BelongType).Select(m => m.Describe).FirstOrDefaultAsync();
+                if (list.BelongType != 0 && list.BelongType != 3 && !string.IsNullOrEmpty(describe)) //被驿站录入了
+                {
+                    string name = await _goodjobdb.MyResumes.Where(m => m.MyUserId == list.MyUserId).Select(m=>m.PerName).FirstOrDefaultAsync();
+                    resultModel.Result = false;
+                    resultModel.Message = $"{describe}已录入相同的手机号:{dto.PhoneNum},用户名为：{name}";
+                    return resultModel;
+                }
+                //没有其他驿站被录入，将 My_Resume 的数据复制到 My_Resume_back，再做更新My_Resume，添加登记记录
+                using (var dbContextTransaction = await _goodjobdb.Database.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        int myUserId = list.MyUserId;
+                        //复制表
+                        string copySql = $"insert into My_Resume_back select * from My_Resume where MyUserID={myUserId}";
+                        await _goodjobdb.Database.ExecuteSqlRawAsync(copySql);
+
+                        #region 修改MyUser表
+
+                        list.BelongType = belongType;
+                        int registerFrom = await _goodjobdb.ResumeRegisterFroms.Where(m => m.BelongType == belongType).Select(m => m.FromId).FirstOrDefaultAsync();
+                        if (registerFrom == 0) registerFrom = -1; //表示从驿站后台添加的，到不知道是哪个驿站。未知
+                        list.RegisterFrom = registerFrom;
+                        //list.Email = dto.Email;
+
+                        #endregion
+
+
+                        #region 修改 My_Resume 表
+                        var myResumeInfo = await _goodjobdb.Set<MyResume>().Where(m => m.MyUserId == list.MyUserId).SingleAsync();
+                        myResumeInfo.PerName = dto.UserName;
+                        myResumeInfo.Height = (short)dto.Height;
+                        myResumeInfo.Weight = (short)dto.Weight;
+                        myResumeInfo.Sex = (byte)dto.Sex;
+                        myResumeInfo.MobileNum = dto.PhoneNum;
+                        myResumeInfo.Birthday = dto.Birthday;
+                        myResumeInfo.LocationP = dto.LocationP;
+                        myResumeInfo.LocationC = dto.LocationC;
+                        myResumeInfo.HometownP = dto.HometownP;
+                        myResumeInfo.HometownC = dto.HometownC;
+                        myResumeInfo.ZipCode = dto.ZipCode;
+                        myResumeInfo.CardType = (byte)dto.CardType;
+                        myResumeInfo.CardNum = dto.CardNum;
+                        myResumeInfo.MaritalStatus = (byte)dto.MaritalStatus;
+                        myResumeInfo.Nationality = (byte)dto.Nationality;
+                        myResumeInfo.JobSeeking = dto.ResumeTitle;
+                        myResumeInfo.DegreeId = (byte)dto.DegreeId;
+                        myResumeInfo.WorkedYear = (byte)dto.WorkedYear;
+                        myResumeInfo.SelfDescription = dto.SelfDescription;
+                        myResumeInfo.LocationC = dto.LocationC;
+                        #endregion
+
+                        #region 更新工作地区
+
+                        var myJobLocationInfo = await _goodjobdb.Set<MyJobLocation>().Where(m => m.MyUserId == myUserId).FirstOrDefaultAsync();
+                        if (myJobLocationInfo != null)
+                        {
+                            myJobLocationInfo.JobLocationP = dto.JobLocationP;
+                            myJobLocationInfo.JobLocationC = dto.JobLocationC;
+                        }
+                        else
+                        {
+                            var myJobLocation = new MyJobLocation()
+                            {
+                                MyUserId = myUserId,
+                                JobLocationC = dto.JobLocationC,
+                                JobLocationP = dto.JobLocationP,
+                            };
+                            await _goodjobdb.Set<MyJobLocation>().AddAsync(myJobLocation);
+                        }
+
+                        #endregion
+
+                        #region 更新意向岗位
+
+                        var myJobFunctionInfo = await _goodjobdb.Set<MyJobFunction1>().Where(m => m.MyUserId == myUserId).ToListAsync();
+                        if (myJobFunctionInfo.Count != 0)
+                        {
+                            _goodjobdb.RemoveRange(myJobFunctionInfo);
+                        }
+                        foreach (var item in dto.JobFunctionList)
+                        {
+                            var myJobFunction1 = new MyJobFunction1()
+                            {
+                                MyUserId = myUserId,
+                                JobFunctionId = item.JobFunctionId,
+                                JobFunctionBig = item.JobFunctionBig,
+                                JobFunctionSmall = item.JobFunctionSmall,
+                            };
+                            await _goodjobdb.Set<MyJobFunction1>().AddAsync(myJobFunction1);
+                        }
+
+                        #endregion
+
+                        #region 更新工作经历以及教育背景
+
+                        try
+                        {
+                            var myResumeOldTextInfo = await _goodjobdb.Set<MyResumeOldText>().Where(m => m.MyUserId == myUserId).SingleAsync();
+                            myResumeOldTextInfo.EduText = dto.EduText;
+                            myResumeOldTextInfo.WorkText = dto.WorkText;
+                        }
+                        catch (Exception e)
+                        {
+                            var myResumeOldText = new MyResumeOldText()
+                            {
+                                MyUserId = myUserId,
+                                EduText = dto.EduText,
+                                WorkText = dto.WorkText,
+                            };
+                            await _goodjobdb.Set<MyResumeOldText>().AddAsync(myResumeOldText);
+                        }
+
+                        #endregion
+
+                        #region 登记標簽,登记记录
+
+                        var registerSign = new RegisterSign
+                        {
+                            MyUserId = myUserId,
+                            Type = dto.RegisterType,
+                            Esid = dto.EsId,
+                            CreateTime = DateTime.Now,
+                            BelongType = belongType,
+                        };
+                        await _goodjobdb.Set<RegisterSign>().AddAsync(registerSign);
+                        #endregion
+
+                        #region update Goodjob_Query.dbo.MyResume_Query
+
+                        var param = new SqlParameter[]
+                        {
+                        new SqlParameter("@PerName", dto.UserName),
+                        new SqlParameter("@Sex", dto.Sex),
+                        new SqlParameter("@Birthday", dto.Birthday),
+                        new SqlParameter("@Hometown_P", dto.HometownP),
+                        new SqlParameter("@Hometown_C", dto.HometownC),
+                        new SqlParameter("@Location_P", dto.LocationP),
+                        new SqlParameter("@Location_C", dto.LocationC),
+                        new SqlParameter("@DegreeID", dto.DegreeId),
+                        new SqlParameter("@WorkedYear", dto.WorkedYear),
+                        new SqlParameter("@LastPosName", dto.LastPosName),
+                        new SqlParameter("@MyUserID", list.MyUserId),
+                        };
+                        string sql =
+                            "update Goodjob_Query.dbo.MyResume_Query  set PerName=@PerName, Sex=@Sex,Birthday=@Birthday,Hometown_P=@Hometown_P,Hometown_C=@Hometown_C,Location_P=@Location_P,Location_C=@Location_C,DegreeID=@DegreeID,WorkedYear=@WorkedYear,LastPosName=@LastPosName,UpdateDate=GETDATE()  where MyUserID=@MyUserID";
+                        int i = await _goodjobdb.Database.ExecuteSqlRawAsync(sql, param);
+                        if (i == 0) //不存在于表 Goodjob_Query.dbo.MyResume_Query 做新增
+                        {
+                            #region insert into Goodjob_Query.dbo.MyResume_Query
+                            var param1 = new SqlParameter[]{
+                           new SqlParameter() { ParameterName = "@MyUserID", SqlDbType =  SqlDbType.Int, Size = 100, Value = myUserId },
+                           new SqlParameter() {  ParameterName = "@PerName", SqlDbType =  SqlDbType.VarChar, Size = 100, Value = dto.UserName },
+                           new SqlParameter() { ParameterName = "@Sex", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.Sex },
+                           new SqlParameter() { ParameterName = "@Birthday", SqlDbType =  SqlDbType.SmallDateTime, Size = 100, Value = dto.Birthday },
+                           new SqlParameter() { ParameterName = "@Hometown_P", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.HometownP },
+                           new SqlParameter() { ParameterName = "@Hometown_C", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.HometownC  },
+                           new SqlParameter() { ParameterName = "@Location_P",  SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.LocationP },
+                           new SqlParameter() { ParameterName = "@Location_C", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.LocationC },
+                           new SqlParameter() { ParameterName = "@DegreeID", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.DegreeId },
+                           new SqlParameter() { ParameterName = "@WorkedYear", SqlDbType =  SqlDbType.Int, Size = 100, Value = dto.WorkedYear },
+
+                           new SqlParameter() { ParameterName = "@LastPosName", SqlDbType =  SqlDbType.VarChar, Size = 100, Value = dto.LastPosName},
+                           new SqlParameter() { ParameterName = "@ResumeStatus", SqlDbType =  SqlDbType.Int, Size = 100, Value = 1 },
+                           new SqlParameter() { ParameterName = "@BelongType", SqlDbType =  SqlDbType.Int, Size = 100, Value = belongType },
+                       };
+
+                            await _goodjobdb.Database.ExecuteSqlRawAsync("EXEC [dbo].[Insert_MyResume_Query] @MyUserID,@PerName,@Sex,@Birthday,@Hometown_P,@Hometown_C,@Location_P,@Location_C,@DegreeID,@WorkedYear,@LastPosName,@ResumeStatus,@BelongType", param1);
+                            #endregion
+                        }
+
+                        #endregion
+
+                        await _goodjobdb.SaveChangesAsync();
+
+                        await dbContextTransaction.CommitAsync();
+                        resultModel.Result = true;
+                        resultModel.Message = "添加成功";
+                        return resultModel;
+                    }
+                    catch (Exception e)
+                    {
+                        string logPath = "path/logfile.txt";
+                        Directory.CreateDirectory(Path.GetDirectoryName(logPath)); // 确保目录存在
+                        using (StreamWriter sw = File.AppendText(logPath))
+                        {
+                           await sw.WriteLineAsync("Error occurred at: " + DateTime.Now);
+                           await sw.WriteLineAsync(e.Message);
+                           await sw.WriteLineAsync(e.InnerException.Message);   
+                        }
+                        await dbContextTransaction.RollbackAsync();
+                        resultModel.Result = false;
+                        resultModel.Message = "录入出错啦";
+                        return resultModel;
+                    }
+                   
+                }
+
+
             }
 
             int ii;
@@ -187,8 +393,6 @@ namespace Service
                         parameter);
 
                     int myUserId = (int)parameter.Value;
-                    //简历属性
-                    int belongType = Convert.ToInt32(tenantId);
                     //录入来源
                     //int registerFrom = RegisterFrom.Dictionarys[tenantId];
                     int registerFrom = await _goodjobdb.ResumeRegisterFroms.Where(m=>m.BelongType==belongType).Select(m=>m.FromId).FirstOrDefaultAsync();
@@ -201,7 +405,7 @@ namespace Service
                         UserName = dto.UserName+ randomNumber,
                         Password = "123456",
                         PhoneNum = dto.PhoneNum,
-                        Email = dto.Email,
+                        //Email = dto.Email,
                         RegisterFrom = registerFrom,
                         BelongType = belongType,
                     };
@@ -367,7 +571,7 @@ namespace Service
                               select new OutUnemploymentDto
                               {
                                   MyUserId = a.MyUserId,
-                                  UserName = a.UserName,
+                                  UserName = c.PerName,
                                   Sex = c.Sex,
                                   CheckFlag = c.CheckFlag,
                                   Birthday= (DateTime)c.Birthday,
@@ -586,17 +790,15 @@ namespace Service
             {
                 try
                 {
-                    
-
                     int myUserId = unemployment.MyUserId;
                     //录入来源
                     //int registerFrom = RegisterFrom.Dictionarys[tenantId];
                     //简历属性
                     //int belongType = RegisterFrom.Dictionarys1[tenantId];
                     var userInfo = await _goodjobdb.Set<MyUser>().Where(m => m.MyUserId == myUserId).SingleAsync();
-                    userInfo.UserName = unemployment.UserName;
+                    //userInfo.UserName = unemployment.UserName;
                     userInfo.PhoneNum = unemployment.PhoneNum;
-                    userInfo.Email = unemployment.Email;
+                    //userInfo.Email = unemployment.Email;
                     var myResumeInfo = await _goodjobdb.Set<MyResume>().Where(m => m.MyUserId == myUserId).SingleAsync();
                     myResumeInfo.PerName = unemployment.UserName;
                     myResumeInfo.Height = (short)unemployment.Height;
@@ -693,7 +895,7 @@ namespace Service
                     //var parameters = new object[] { unemployment.UserName, unemployment.Sex, unemployment.Birthday, unemployment.HometownP, unemployment.HometownC, unemployment.LocationP, unemployment.LocationC, unemployment.DegreeId, unemployment.WorkedYear, unemployment.LastPosName };
                     string sql =
                         "update Goodjob_Query.dbo.MyResume_Query  set PerName=@PerName, Sex=@Sex,Birthday=@Birthday,Hometown_P=@Hometown_P,Hometown_C=@Hometown_C,Location_P=@Location_P,Location_C=@Location_C,DegreeID=@DegreeID,WorkedYear=@WorkedYear,LastPosName=@LastPosName,UpdateDate=GETDATE()  where MyUserID=@MyUserID";
-                   int i= _goodjobdb.Database.ExecuteSqlRaw(sql, parms);
+                   int i= await _goodjobdb.Database.ExecuteSqlRawAsync(sql, parms);
                    if(i == 0){
                        #region insert into Goodjob_Query.dbo.MyResume_Query
                        var parms1 = new SqlParameter[]{
@@ -713,7 +915,7 @@ namespace Service
                            new SqlParameter() { ParameterName = "@BelongType", SqlDbType =  SqlDbType.Int, Size = 100, Value = userInfo.BelongType },
                        };
 
-                       _goodjobdb.Database.ExecuteSqlRaw("EXEC [dbo].[Insert_MyResume_Query] @MyUserID,@PerName,@Sex,@Birthday,@Hometown_P,@Hometown_C,@Location_P,@Location_C,@DegreeID,@WorkedYear,@LastPosName,@ResumeStatus,@BelongType", parms1);
+                       await _goodjobdb.Database.ExecuteSqlRawAsync("EXEC [dbo].[Insert_MyResume_Query] @MyUserID,@PerName,@Sex,@Birthday,@Hometown_P,@Hometown_C,@Location_P,@Location_C,@DegreeID,@WorkedYear,@LastPosName,@ResumeStatus,@BelongType", parms1);
                        #endregion
                     }
 

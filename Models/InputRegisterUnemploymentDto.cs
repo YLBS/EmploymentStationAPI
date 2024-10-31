@@ -12,10 +12,8 @@ namespace Models
         /// 用户名
         /// </summary>
         public string UserName { get; set; } = null!;
-        /// <summary>
-        /// 电子邮件地址
-        /// </summary>
-        public string Email { get; set; } = null!;
+   
+        //public string Email { get; set; } = "";
         public string PhoneNum { get; set; } = null!;
         /// <summary>
         /// 性别

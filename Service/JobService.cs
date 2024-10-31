@@ -572,23 +572,23 @@ namespace Service
                         PosState = o.PosState,
                         WelfaStr=o.Welfa,
                         PosLableStr = o.PosLabel,
-                    }).ToListAsync();
+                    }).OrderByDescending(m => m.PosState).ThenByDescending(m => m.PosId).ToListAsync();
                 int count = data.Count;
                 foreach (var item in data)
                 {
                     //处理职位类别
-                    var jobTypeIds = await _basedb.Set<BaseMemPosJobFunction>().Where(m => m.PosId == item.PosId).Select(o => o.JobFunctionSmall).ToListAsync();
-                    var list2 = await _goodjobOtherContext.Set<DicJobFunction1>().Where(m => jobTypeIds.Contains(m.Id)).ToListAsync();
-                    foreach (var item1 in list2)
-                    {
-                        MyJobFunctionModels myJob = new MyJobFunctionModels();
-                        myJob.JobFunctionBig = item1.BigId;
-                        myJob.JobFunctionSmall = item1.SmalId;
-                        myJob.JobFunctionId = item1.Id;
-                        if (item.JobFunctionList == null)
-                            item.JobFunctionList = new List<MyJobFunctionModels>();
-                        item.JobFunctionList.Add(myJob);
-                    }
+                    //var jobTypeIds = await _basedb.Set<BaseMemPosJobFunction>().Where(m => m.PosId == item.PosId).Select(o => o.JobFunctionSmall).ToListAsync();
+                    //var list2 = await _goodjobOtherContext.Set<DicJobFunction1>().Where(m => jobTypeIds.Contains(m.Id)).ToListAsync();
+                    //foreach (var item1 in list2)
+                    //{
+                    //    MyJobFunctionModels myJob = new MyJobFunctionModels();
+                    //    myJob.JobFunctionBig = item1.BigId;
+                    //    myJob.JobFunctionSmall = item1.SmalId;
+                    //    myJob.JobFunctionId = item1.Id;
+                    //    if (item.JobFunctionList == null)
+                    //        item.JobFunctionList = new List<MyJobFunctionModels>();
+                    //    item.JobFunctionList.Add(myJob);
+                    //}
 
 
                     var list1 = await _basedb.Set<BaseMemPosJobLocation>().Where(m => m.PosId == item.PosId).Select(o =>
@@ -637,19 +637,19 @@ namespace Service
                     PosState = o.PosState,
                     WelfaStr = o.Welfa,
                     PosLableStr = o.PosLabel,
-                }).ToListAsync();
+                }).OrderByDescending(m=>m.PosState).ThenByDescending(m => m.PosId).ToListAsync();
                 int count = data.Count;
                 foreach (var item in data)
                 {
-                    var list = await _goodjobdb.Set<MemPosJobFunction1>().Where(m => m.PosId == item.PosId).Select(o => new MyJobFunctionModels
-                    {
-                        JobFunctionId = o.JobFunctionId,
-                        JobFunctionBig = o.JobFunctionBig,
-                        JobFunctionSmall = o.JobFunctionSmall,
-                    }).ToListAsync();
-                    if (item.JobFunctionList == null)
-                        item.JobFunctionList = new List<MyJobFunctionModels>();
-                    item.JobFunctionList.AddRange(list);
+                    //var list = await _goodjobdb.Set<MemPosJobFunction1>().Where(m => m.PosId == item.PosId).Select(o => new MyJobFunctionModels
+                    //{
+                    //    JobFunctionId = o.JobFunctionId,
+                    //    JobFunctionBig = o.JobFunctionBig,
+                    //    JobFunctionSmall = o.JobFunctionSmall,
+                    //}).ToListAsync();
+                    //if (item.JobFunctionList == null)
+                    //    item.JobFunctionList = new List<MyJobFunctionModels>();
+                    //item.JobFunctionList.AddRange(list);
 
                     var list1 = await _goodjobdb.Set<MemPosJobLocation>().Where(m => m.PosId == item.PosId).Select(o =>
                         new JobLocationDto
