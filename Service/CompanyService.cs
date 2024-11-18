@@ -716,6 +716,9 @@ namespace Service
                     // 处理结果集
                     while (await reader.ReadAsync())
                     {
+                        //int myUserId = Convert.ToInt32(reader["MyUserId"]);
+                        //if(getList.Where(s=>s.MyUserId==myUserId).Select(s=>s.MyUserId).Any())
+                        //    continue;
                         OutUnemploymentInfoDto dto = new OutUnemploymentInfoDto();
                         dto.MyUserId = Convert.ToInt32(reader["MyUserId"]);
                         dto.UserName = reader["UserName"].ToString();
@@ -820,10 +823,17 @@ namespace Service
                     myResumeInfo.WorkedYear = (byte)unemployment.WorkedYear;
                     myResumeInfo.SelfDescription = unemployment.SelfDescription;
                     myResumeInfo.LocationC = unemployment.LocationC;
-                    var myJobLocationInfo = await _goodjobdb.Set<MyJobLocation>().Where(m => m.MyUserId == myUserId).FirstOrDefaultAsync();
-                    if(myJobLocationInfo != null){
-                        myJobLocationInfo.JobLocationP = unemployment.JobLocationP;
-                        myJobLocationInfo.JobLocationC = unemployment.JobLocationC;
+                    var myJobLocationInfo = await _goodjobdb.Set<MyJobLocation>().Where(m => m.MyUserId == myUserId).ToListAsync();
+                    if(myJobLocationInfo.Count > 1)
+                    {
+                        _goodjobdb.Set<MyJobLocation>().RemoveRange(myJobLocationInfo);
+                    }
+
+                    if (myJobLocationInfo.Count == 1)
+                    {
+
+                        myJobLocationInfo[0].JobLocationP = unemployment.JobLocationP;
+                        myJobLocationInfo[0].JobLocationC = unemployment.JobLocationC;
                     }
                     else
                     {
@@ -873,8 +883,19 @@ namespace Service
 
                     //_goodjobdb.UpdateRange(userInfo, myResumeInfo, myJobLocationInfo, myJobFunctionInfo, myResumeOldTextInfo);
 
-                    var registerSign = await _goodjobdb.Set<RegisterSign>().Where(m => m.MyUserId == myUserId).SingleAsync();
-                    registerSign.Type = unemployment.RegisterType;
+                    var registerSign = await _goodjobdb.Set<RegisterSign>().Where(m => m.MyUserId == myUserId).FirstOrDefaultAsync();
+                    if (registerSign != null)
+                    {
+                        registerSign.Type = unemployment.RegisterType;
+                    }
+                    else
+                    {
+                        int belongType = await _sitedatadb.JiuYeStations.Where(j=>j.Id== unemployment.EsId).Select(j=>j.BelongType).FirstOrDefaultAsync();
+                        await _goodjobdb.RegisterSigns.AddAsync(new RegisterSign()
+                        {
+                            MyUserId = myUserId,Type = 1,Esid = unemployment.EsId,CreateTime = DateTime.Now,BelongType = belongType
+                        });
+                    }
 
                     #region update Goodjob_Query.dbo.MyResume_Query
 
